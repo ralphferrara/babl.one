@@ -1,73 +1,61 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| babl.one :: release-cli.test.ts
-//|| Test for the release CLI functionality
+//|| babl.one :: tests/release-cli.test.ts
+//|| Tests for release.mjs - Validates CLI execution with patch/minor/major argument support
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-import { vi, expect, it } from 'vitest'; // Ensure vitest is used properly
-import { release } from '../scripts/release.ts'; // Import the release function from the correct path
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import * as child from 'child_process';
+import * as process from 'process';
+import { release } from '../scripts/release.ts';
 
-/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| Test for Patch Release
-//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+vi.mock('child_process');
+vi.mock('process');
 
-it('should execute release with "patch" when no argument is provided', async () => {
-  const logSpy = vi.fn();
-  vi.spyOn(console, 'log').mockImplementation(logSpy); // Spy on console.log
+describe('Release CLI', () => {
+   beforeEach(() => {
+      vi.resetAllMocks();
+   });
 
-  // Call the release function with no arguments (assuming it's the patch case)
-  await release('patch');  // Ensure correct function call with the expected argument
+   it('should execute release with "patch" when no argument is provided', async () => {
+      const logSpy = vi.fn();
+      process.argv = ['node', 'release.mjs']; // Simulating no argument provided
+      vi.spyOn(global.console, 'log').mockImplementation(logSpy);
 
-  // Now check if the spy was called with the correct arguments
-  expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 1.2.4');
-});
+      await import('../scripts/release.mjs'); // Simulate running the script
 
-/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| Test for Minor Release
-//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+      expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 1.2.4'); // Example log output after patch bump
+   });
 
-it('should execute release with "minor" when "minor" argument is provided', async () => {
-  const logSpy = vi.fn();
-  vi.spyOn(console, 'log').mockImplementation(logSpy); // Spy on console.log
+   it('should execute release with "minor" when "minor" argument is provided', async () => {
+      const logSpy = vi.fn();
+      process.argv = ['node', 'release.mjs', 'minor']; // Simulating minor argument
+      vi.spyOn(global.console, 'log').mockImplementation(logSpy);
 
-  // Call the release function with the minor argument
-  await release('minor');  // Ensure the minor argument triggers the correct bump
+      await import('../scripts/release.mjs'); // Simulate running the script
 
-  // Validate the log output after the minor bump
-  expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 1.3.0');
-});
+      expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 1.3.0'); // Example log output after minor bump
+   });
 
-/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| Test for Major Release
-//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+   it('should execute release with "major" when "major" argument is provided', async () => {
+      const logSpy = vi.fn();
+      process.argv = ['node', 'release.mjs', 'major']; // Simulating major argument
+      vi.spyOn(global.console, 'log').mockImplementation(logSpy);
 
-it('should execute release with "major" when "major" argument is provided', async () => {
-  const logSpy = vi.fn();
-  vi.spyOn(console, 'log').mockImplementation(logSpy); // Spy on console.log
+      await import('../scripts/release.mjs'); // Simulate running the script
 
-  // Call the release function with the major argument
-  await release('major');  // Ensure the major argument triggers the correct bump
+      expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 2.0.0'); // Example log output after major bump
+   });
 
-  // Validate the log output after the major bump
-  expect(logSpy).toHaveBeenCalledWith('[release] Version bumped: 1.2.3 → 2.0.0');
-});
+   it('should handle errors correctly and log them', async () => {
+      const logSpy = vi.fn();
+      process.argv = ['node', 'release.mjs', 'patch']; // Simulating patch argument
+      vi.spyOn(global.console, 'error').mockImplementation(logSpy);
 
-/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| Test for Error Handling
-//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+      // Mocking the release function to throw an error
+      vi.spyOn(release, 'release').mockImplementationOnce(() => { throw new Error('Test error'); });
 
-it('should handle errors correctly and log them', async () => {
-  const logSpy = vi.fn();
-  vi.spyOn(console, 'log').mockImplementation(logSpy); // Spy on console.log
+      await import('../scripts/release.mjs'); // Simulate running the script
 
-  // Mocking the release function to throw an error
-  vi.spyOn(require('../scripts/release.ts'), 'release').mockImplementationOnce(() => {
-    throw new Error('Test error');
-  });
-
-  // Execute the release function and expect it to handle the error
-  try {
-    await release('patch');
-  } catch (error) {
-    expect(logSpy).toHaveBeenCalledWith('[release error] Test error');
-  }
+      expect(logSpy).toHaveBeenCalledWith('[release error]', 'Test error');
+   });
 });
