@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1743227829661" clover="3.2.0">
-  <project timestamp="1743227829661" name="All files">
-    <metrics statements="288" coveredstatements="102" conditionals="31" coveredconditionals="17" methods="29" coveredmethods="14" elements="348" coveredelements="133" complexity="0" loc="288" ncloc="288" packages="4" files="6" classes="6"/>
+<coverage generated="1743228356669" clover="3.2.0">
+  <project timestamp="1743228356669" name="All files">
+    <metrics statements="337" coveredstatements="127" conditionals="37" coveredconditionals="20" methods="32" coveredmethods="16" elements="406" coveredelements="163" complexity="0" loc="337" ncloc="337" packages="4" files="7" classes="7"/>
     <package name="babl.one-core">
       <metrics statements="62" coveredstatements="0" conditionals="1" coveredconditionals="0" methods="1" coveredmethods="0"/>
       <file name="release.mjs" path="C:\SCM\babl.one\babl.one-core\release.mjs">
@@ -147,44 +147,44 @@
       <file name="app.ts" path="C:\SCM\babl.one\babl.one-core\src\app.ts">
         <metrics statements="58" coveredstatements="26" conditionals="4" coveredconditionals="3" methods="12" coveredmethods="3"/>
         <line num="17" count="1" type="cond" truecount="1" falsecount="0"/>
-        <line num="19" count="3" type="stmt"/>
-        <line num="20" count="3" type="stmt"/>
-        <line num="21" count="3" type="stmt"/>
-        <line num="22" count="3" type="stmt"/>
-        <line num="23" count="3" type="stmt"/>
-        <line num="24" count="3" type="stmt"/>
-        <line num="25" count="3" type="stmt"/>
-        <line num="31" count="3" type="stmt"/>
+        <line num="19" count="5" type="stmt"/>
+        <line num="20" count="5" type="stmt"/>
+        <line num="21" count="5" type="stmt"/>
+        <line num="22" count="5" type="stmt"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="24" count="5" type="stmt"/>
+        <line num="25" count="5" type="stmt"/>
+        <line num="31" count="5" type="stmt"/>
         <line num="32" count="0" type="stmt"/>
         <line num="33" count="0" type="stmt"/>
         <line num="34" count="0" type="stmt"/>
         <line num="36" count="0" type="stmt"/>
         <line num="37" count="0" type="stmt"/>
         <line num="38" count="0" type="stmt"/>
-        <line num="44" count="3" type="cond" truecount="1" falsecount="0"/>
-        <line num="45" count="2" type="stmt"/>
-        <line num="46" count="2" type="stmt"/>
-        <line num="48" count="3" type="cond" truecount="1" falsecount="0"/>
-        <line num="49" count="2" type="cond" truecount="0" falsecount="1"/>
-        <line num="50" count="2" type="stmt"/>
-        <line num="51" count="2" type="stmt"/>
-        <line num="57" count="3" type="stmt"/>
+        <line num="44" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="45" count="3" type="stmt"/>
+        <line num="46" count="3" type="stmt"/>
+        <line num="48" count="5" type="cond" truecount="1" falsecount="0"/>
+        <line num="49" count="3" type="cond" truecount="0" falsecount="1"/>
+        <line num="50" count="3" type="stmt"/>
+        <line num="51" count="3" type="stmt"/>
+        <line num="57" count="5" type="stmt"/>
         <line num="58" count="0" type="stmt"/>
         <line num="59" count="0" type="stmt"/>
-        <line num="61" count="3" type="stmt"/>
+        <line num="61" count="5" type="stmt"/>
         <line num="62" count="0" type="stmt"/>
         <line num="63" count="0" type="stmt"/>
-        <line num="65" count="3" type="stmt"/>
+        <line num="65" count="5" type="stmt"/>
         <line num="66" count="0" type="stmt"/>
         <line num="67" count="0" type="stmt"/>
-        <line num="73" count="3" type="stmt"/>
+        <line num="73" count="5" type="stmt"/>
         <line num="74" count="0" type="stmt"/>
         <line num="75" count="0" type="stmt"/>
         <line num="76" count="0" type="stmt"/>
-        <line num="78" count="3" type="stmt"/>
+        <line num="78" count="5" type="stmt"/>
         <line num="79" count="0" type="stmt"/>
         <line num="80" count="0" type="stmt"/>
-        <line num="86" count="3" type="stmt"/>
+        <line num="86" count="5" type="stmt"/>
         <line num="87" count="0" type="stmt"/>
         <line num="88" count="0" type="stmt"/>
         <line num="89" count="0" type="stmt"/>
@@ -193,16 +193,16 @@
         <line num="92" count="0" type="stmt"/>
         <line num="93" count="0" type="stmt"/>
         <line num="94" count="0" type="stmt"/>
-        <line num="100" count="3" type="stmt"/>
+        <line num="100" count="5" type="stmt"/>
         <line num="101" count="0" type="stmt"/>
         <line num="102" count="0" type="stmt"/>
         <line num="103" count="0" type="stmt"/>
         <line num="104" count="0" type="stmt"/>
-        <line num="106" count="3" type="stmt"/>
+        <line num="106" count="5" type="stmt"/>
         <line num="107" count="0" type="stmt"/>
         <line num="108" count="0" type="stmt"/>
         <line num="109" count="0" type="stmt"/>
-        <line num="111" count="3" type="stmt"/>
+        <line num="111" count="5" type="stmt"/>
         <line num="117" count="1" type="stmt"/>
       </file>
       <file name="index.ts" path="C:\SCM\babl.one\babl.one-core\src\index.ts">
@@ -234,7 +234,59 @@
       </file>
     </package>
     <package name="babl.one-core.src.plugins">
-      <metrics statements="81" coveredstatements="57" conditionals="17" coveredconditionals="6" methods="8" coveredmethods="6"/>
+      <metrics statements="130" coveredstatements="82" conditionals="23" coveredconditionals="9" methods="11" coveredmethods="8"/>
+      <file name="config.ts" path="C:\SCM\babl.one\babl.one-core\src\plugins\config.ts">
+        <metrics statements="49" coveredstatements="25" conditionals="6" coveredconditionals="3" methods="3" coveredmethods="2"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="19" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="20" count="1" type="stmt"/>
+        <line num="21" count="1" type="stmt"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="45" count="0" type="stmt"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="54" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="55" count="1" type="cond" truecount="0" falsecount="1"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="58" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="59" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="60" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="64" count="2" type="stmt"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="66" count="2" type="cond" truecount="0" falsecount="1"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="68" count="0" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="70" count="2" type="stmt"/>
+        <line num="71" count="1" type="stmt"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="85" count="1" type="stmt"/>
+      </file>
       <file name="logger.ts" path="C:\SCM\babl.one\babl.one-core\src\plugins\logger.ts">
         <metrics statements="81" coveredstatements="57" conditionals="17" coveredconditionals="6" methods="8" coveredmethods="6"/>
         <line num="16" count="1" type="cond" truecount="1" falsecount="0"/>
