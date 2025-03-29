@@ -1,22 +1,21 @@
 {
    "name": "@babl.one/core",
-   "version": "0.0.4",
+   "version": "0.0.8",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
+   "main": "./dist/index.js",
+   "types": "./dist/index.d.ts",
    "exports": {
       ".": {
-         "import": "./dist/index.js",
-         "require": "./dist/index.cjs"
+         "import": "./dist/index.js"
       }
    },
    "files": [
       "dist"
    ],
    "scripts": {
-      "build": "tsup src/index.ts --dts --format esm,cjs --out-dir dist",
-      "dev": "tsup src/index.ts --watch",
+      "build": "tsup src/index.ts --target es2022 --format esm --dts --out-dir dist",
+      "dev": "tsx src/index.ts",
       "release": "node release.mjs",
       "test": "vitest run --coverage"
    },
