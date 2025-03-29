@@ -1,65 +1,57 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| babl.one :: release.test.ts
-//|| Unit Tests for Release Helpers - Validates version bumping, package reading/writing, and shell execution
+//|| babl.one :: tests/config.test.ts
+//|| Config Plugin Test - Validates config loading and registration behavior
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import { describe, it, expect, vi, beforeEach }    from 'vitest';
-      import * as fs                                     from 'fs';
-      import * as child                                  from 'child_process';
-
-      import {
-            bumpVersion,
-            readPackage,
-            writePackage,
-            runCommand
-      }                                                  from '../scripts/release.ts';
-
-      vi.mock('fs');
-      vi.mock('child_process');
 
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Test Suite: release helpers
+      //|| Imports
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      describe('release helpers', () => {
+      import { describe, it, expect, vi, beforeEach } from 'vitest';
+      import fs                                       from 'node:fs';
+      import path                                     from 'node:path';
+      import ConfigPlugin                             from '~/plugins/config';
+      import { App }                                  from '~/app';
+
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Mocks
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      vi.mock('node:fs');
+
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Suite
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      describe('ConfigPlugin', () => {
+
+            let app: App;
 
             beforeEach(() => {
                   vi.resetAllMocks();
+                  app = new App();
             });
 
-            it('should bump patch version', () => {
-                  expect(bumpVersion('1.2.3', 'patch')).toBe('1.2.4');
-            });
+            it('should load and register config values from JSON files', () => {
+                  const fakeFiles = ['core.json', 'logger.json'];
 
-            it('should bump minor version', () => {
-                  expect(bumpVersion('1.2.3', 'minor')).toBe('1.3.0');
-            });
+                  vi.spyOn(fs, 'existsSync').mockReturnValue(true);
+                  vi.spyOn(fs, 'readdirSync').mockReturnValue(fakeFiles);
+                  vi.spyOn(fs, 'readFileSync').mockImplementation((file: string) => {
+                        if (file.endsWith('core.json')) return '{"env":"dev"}';
+                        if (file.endsWith('logger.json')) return '{"color":"blue"}';
+                        return '';
+                  });
 
-            it('should bump major version', () => {
-                  expect(bumpVersion('1.2.3', 'major')).toBe('2.0.0');
-            });
+                  ConfigPlugin(app);
 
-            it('should read package.json', () => {
-                  vi.spyOn(fs, 'readFileSync').mockReturnValue('{"version":"1.0.0"}');
-                  const result                     = readPackage();
-                  expect(result.version).toBe('1.0.0');
-            });
-
-            it('should write package.json correctly', () => {
-                  const spy                        = vi.spyOn(fs, 'writeFileSync');
-                  const mockPkg                    = { version: '2.3.4' };
-                  writePackage(mockPkg);
-                  expect(spy).toHaveBeenCalledWith(
-                        'package.json',
-                        JSON.stringify(mockPkg, null, 3)
-                  );
-            });
-
-            it('should execute shell command', () => {
-                  const spy                        = vi.spyOn(child, 'execSync');
-                  runCommand('echo Hello');
-                  expect(spy).toHaveBeenCalledWith('echo Hello', { stdio: 'inherit' });
+                  const config = app.resolve<any>('config');
+                  expect(config).toBeDefined();
+                  expect(config.core.env).toBe('dev');
+                  expect(config.logger.color).toBe('blue');
             });
 
       });
