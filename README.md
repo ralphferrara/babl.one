@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 Overview
+## Overview
 
 `@babl.one/core` is the foundation of the babl.one backend architecture — a lean, opinionated bootstrap module designed to power a modular, composable, and blazing-fast TypeScript framework.
 
@@ -21,7 +21,7 @@ It provides the runtime shell and system initializer — everything else is a pa
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install @babl.one/core
