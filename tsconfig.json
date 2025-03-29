@@ -1,15 +1,22 @@
+/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+//|| babl.one :: tsconfig.json
+//|| TypeScript Configuration - Compiler settings for core module
+//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
 {
       "compilerOptions": {
-         "target": "ES2022",
-         "module": "ESNext",
-         "moduleResolution": "node",
-         "declaration": true,
-         "outDir": "dist",
-         "strict": true,
-         "esModuleInterop": true,
-         "resolveJsonModule": true,
-         "skipLibCheck": true
+            "target"             : "ES2022",
+            "module"             : "ESNext",
+            "moduleResolution"   : "node",
+            "declaration"        : true,
+            "outDir"             : "dist",
+            "strict"             : true,
+            "esModuleInterop"    : true,
+            "resolveJsonModule"  : true,
+            "skipLibCheck"       : true
       },
-      "include": ["src"]
-   }
-   
+
+      "include": [
+            "src"
+      ]
+}
