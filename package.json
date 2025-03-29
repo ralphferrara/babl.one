@@ -1,25 +1,26 @@
 {
-      "name": "@babl.one/core",
-      "version": "0.0.1",
-      "description": "Core application module for the babl.one framework",
-      "type": "module",
-      "main": "dist/index.js",
-      "types": "dist/index.d.ts",
-      "exports": {
-         ".": {
-            "import": "./dist/index.js",
-            "require": "./dist/index.cjs"
-         }
-      },
-      "files": ["dist"],
-      "scripts": {
-         "build": "tsup src/app.ts --dts --format esm,cjs --out-dir dist",
-         "dev": "tsup src/app.ts --watch",
-         "start": "node dist/index.js"
-      },
-      "devDependencies": {
-         "typescript": "^5.3.0",
-         "tsup": "^7.2.0"
+   "name": "@babl.one/core",
+   "version": "0.0.2",
+   "description": "Bootstrap kernel for the babl.one framework",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js",
+         "require": "./dist/index.cjs"
       }
+   },
+   "files": [
+      "dist"
+   ],
+   "scripts": {
+      "build": "tsup src/index.ts --dts --format esm,cjs --out-dir dist",
+      "dev": "tsup src/index.ts --watch",
+      "release": "node release.mjs"
+   },
+   "devDependencies": {
+      "tsup": "^7.2.0",
+      "typescript": "^5.3.0"
    }
-   
+}
