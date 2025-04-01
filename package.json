@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "2.0.4",
+   "version": "2.0.5",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -26,5 +26,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0",
       "vitest": "^3.0.9"
+   },
+   "dependencies": {
+      "redis": "^4.7.0"
    }
 }

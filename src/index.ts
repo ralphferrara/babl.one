@@ -10,10 +10,11 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.init(async () => {
-            app.use('logger');
-            app.logs('This is a log message');
-            app.logs('This is a warning', 'warn');
-            app.logs('This is an error', 'error');
+            await app.use('console.pretty');
+            app.log('This is a log message');
+            app.log('This is a warning', 'warn');
+            app.log('This is an error', 'error');
+            await app.use('cache.redis');
       });
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
