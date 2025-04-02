@@ -25,6 +25,7 @@
             CookieOptions,
             Route
       }                                                           from '../../interfaces/server/chirp';
+      import ResponseDataPayload                                  from '../../interfaces/server/response.data.payload';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Chirp
@@ -47,6 +48,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             public _data        : Record<string, string> = {};
+            public routePath    : string;
             public request      : ChirpRequestHTTP | ChirpRequestSocket;            
             public response     : ChirpResponseHTTP | ChirpResponseSocket;
             public errors       : Array<string> = [];
@@ -60,7 +62,9 @@
             //|| Process
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            constructor(request : ChirpRequestHTTP | ChirpRequestSocket, response : ChirpResponseHTTP | ChirpResponseSocket) {
+            constructor(routePath : string, request : ChirpRequestHTTP | ChirpRequestSocket, response : ChirpResponseHTTP | ChirpResponseSocket) {
+                  console.log(routePath);
+                  this.routePath    = routePath;
                   this.responded    = false;
                   this.steps        = [];
                   this.currentStep  = -1;
@@ -84,7 +88,15 @@
 
             async next() : Promise<void> {
                   this.currentStep++;
-                  if (this.currentStep >= this.steps.length) return this.respond(501, {'error' : 'Not Implemented'});
+                  if (this.currentStep >= this.steps.length) return this.respond({
+                              status    : 501,
+                              message   : "ERR_NOT_IMPLEMENTED_STEP",
+                              headers   : {},
+                              data      : {},
+                              route     : this.routePath,
+                              ttl       : this.ttl.elapsed()
+                        }   
+                  );
                   if (typeof this.steps[this.currentStep] === 'function') {
                         this.ttl.step("Chirp Step : " + this.steps[this.currentStep].name);
                         try {
@@ -132,48 +144,68 @@
             }         
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Response
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+           
+            respond(responseData : ResponseDataPayload) : any {                  
+                  if (this.responded) return;
+                  this.responded  = true;
+                  this.ttl.step("Chirp Response : " + responseData.status);
+                  this.ttl.complete();
+                  return this.response.respond(responseData);
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Redirect the User
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             redirect(statusCode = 301 | 302, newURL : string): boolean {
-                  this.response.redirect(statusCode, newURL);
-                  this.responded = true;
-                  return false;
+                  this.ttl.step("Chirp Success : OK");
+                  const responsePayload : ResponseDataPayload = {
+                        status    : statusCode,
+                        message   : "REDIRECT",
+                        headers   : {},
+                        redirect  : newURL,
+                        data      : {},
+                        route     : this.routePath,
+                        ttl       : this.ttl.elapsed()
+                  }   
+                  this.respond(responsePayload);
             }
-
+            
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Response
+            //|| Success
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            respond(status: ChirpStatusCodes, data:any, options?:ChirpOptions) : any {                  
-                  if (this.responded) return;
-                  this.responded  = true;
-                  var contentType = (typeof(options) !== 'undefined' && typeof(options.contentType) !== 'undefined') ? options.contentType : app.path(this.request.url).header();
-                  if (typeof(data) == 'object') {
-                        contentType = 'application/json';
-                        data        = JSON.stringify(data);
-                  }
-                  this.ttl.step("Chirp Response : " + status);
-                  this.ttl.complete();
-                  return this.response.respond(status, data, contentType, options);
+            success(data? : any, headers? : Record<string, string>) : void {
+                  this.ttl.step("Chirp Success : OK");
+                  const responsePayload : ResponseDataPayload = {
+                        status    : 200,
+                        message   : "OK",
+                        headers   : headers || {},
+                        data      : data | {} ,
+                        route     : this.routePath,
+                        ttl       : this.ttl.elapsed()
+                  }   
+                  this.respond(responsePayload);
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Error
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            error(status: ChirpStatusCodes, errorCode:string, mayContinue?:boolean, options?:ChirpOptions) : any {
-                  this.errors.push(errorCode);
-                  var errorMessage = app.lang.routeError(errorCode, this.request.lang);
-                  app.log("Chirp : error("+errorMessage+") : " + errorCode, 'error');
-                  this.ttl.step("Chirp Error : " + status + ':' + errorCode);
-                  this.ttl.complete();
-                  if (mayContinue !== false) return this.respond(status, {'error' : {
-                        'route'   : this.request.url,
-                        'code'    : errorCode,
-                        'message' : errorMessage
-                  }}, options);
-                  return;
+            error(status: ChirpStatusCodes, message : string, data? : any ) : void {
+                  app.log("Chirp : error("+message+")", 'error');
+                  this.ttl.step("Chirp Error : " + status + ':' + message);
+                  const responsePayload : ResponseDataPayload = {
+                        status    : status,
+                        message   : message,
+                        headers   : {},
+                        data      : data,
+                        route     : this.routePath,
+                        ttl       : this.ttl.elapsed()
+                  }   
+                  this.respond(responsePayload);
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

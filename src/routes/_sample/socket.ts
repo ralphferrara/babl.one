@@ -29,11 +29,7 @@
 
             async execute(chirp: Chirp) {
                   app.log("Routed SampleRoute : /sample/route", 'info');
-                  await chirp.respond(200, {
-                        route     : '/sample/socket',
-                        status    : 'OK',
-                        timestamp : Date.now(),
-                  });
+                  return chirp.success();
 
             }
       }

@@ -16,7 +16,7 @@
             await app.use('db.mongo');
             await app.use('http'); 
             await app.use('sockets');
-            await app.use('router');
+            await app.use('router'); 
       });
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

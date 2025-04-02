@@ -65,11 +65,11 @@
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Handle Options
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  if (request.method === "OPTIONS") return this.cors();
+                  if (request.method === "OPTIONS") return this.cors(request, response);
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Handle Fav
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  if (request.url === '/favicon.ico') return this.favicon();                  
+                  if (request.url === '/favicon.ico') return this.favicon(request, response);
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Handle Chirp
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -83,11 +83,11 @@
                         //|| Make Response
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         const chirpResponse = new ChirpResponseHTTP(response);
-                        const chirp = new Chirp('HTTP', chirpRequest, chirpResponse);
+                        const chirp = new Chirp(request.url || "/", chirpRequest, chirpResponse);
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| Route
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        await app.route(chirp);
+                        await app.route(request.url, chirp);
                   } catch (error) {
                         app.log(`HTTP [${this.name}] Server Error`, "error");
                         console.error(error);
@@ -102,10 +102,10 @@
             //|| CORS
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            cors() {
-                  if (this.response.httpResponse === null) return;                  
-                  this.response.httpResponse.writeHead(404, { 'Content-Type': 'text/plain' });
-                  this.response.httpResponse.end("Page Not Found");
+            favicon(request : http.IncomingMessage, response : http.ServerResponse) {
+                  if (response === null) return;                  
+                  response.writeHead(404, { 'Content-Type': 'text/plain' });
+                  response.end("Page Not Found");
                   return;
             }
 
@@ -113,13 +113,13 @@
             //|| Favicon
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            favicon() {
-                  if (this.response.httpResponse === null) return;                  
-                  this.response.httpResponse.setHeader("Access-Control-Allow-Origin", "*");
-                  this.response.httpResponse.setHeader("Access-Control-Allow-Methods", "*");
-                  this.response.httpResponse.setHeader("Access-Control-Allow-Headers", "*");
-                  this.response.httpResponse.setHeader("Access-Control-Allow-Credentials", "true");
-                  this.response.httpResponse.end();
+            cors(request : http.IncomingMessage, response : http.ServerResponse) {
+                  if (response === null) return;                  
+                  response.setHeader("Access-Control-Allow-Origin", "*");
+                  response.setHeader("Access-Control-Allow-Methods", "*");
+                  response.setHeader("Access-Control-Allow-Headers", "*");
+                  response.setHeader("Access-Control-Allow-Credentials", "true");
+                  response.end();
                   return;
             }            
 
@@ -134,7 +134,8 @@
                   //|| HTTP or HTTPs
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  this.server = ( this.secure ) ? http.createServer(this.process) : https.createServer(this.process);
+                  const processRequest    = this.process.bind(this);
+                  this.server             = this.secure ? https.createServer(processRequest) : http.createServer(processRequest);
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Error
@@ -148,10 +149,24 @@
                   //|| Listen
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  await new Promise<void>((resolve) => {
-                        if (this.server === null) return;
-                        this.server.listen(this.port, () => {
-                              app.log(`HTTP [${this.name}] listening on port ${this.port}`, 'info');
+                  await new Promise<void>((resolve, reject) => {
+                        if (this.server === null) {
+                              return reject(new Error(`HTTP [${this.name}] failed to create server`));
+                        }
+                  
+                        this.server.on('error', (err: any) => {
+                              if (err.code === 'EADDRINUSE') {
+                                    app.log(`HTTP [${this.name}] port ${this.config.port} in use. Trying random port...`, 'warn');
+                                    // Try again with random port
+                                    this.server?.listen(0); // OS-assigned available port
+                              } else {
+                                    reject(err);
+                              }
+                        });
+                  
+                        this.server.listen(this.config.port, () => {
+                              const actualPort = (this.server?.address() as any)?.port || this.config.port;
+                              app.log(`HTTP [${this.name}] listening on port ${actualPort}`, 'info');
                               resolve();
                         });
                   });

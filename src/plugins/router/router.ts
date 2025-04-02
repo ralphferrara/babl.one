@@ -53,8 +53,8 @@
                         //|| Var
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                        const method     = chirp.request?.method?.toUpperCase?.() || 'GET';
-                        const pathname   = chirp.request?.url?.pathname || '/';
+                        const method     = chirp.request.method;
+                        const pathname   = chirp.request.url;
                         const routeKey   = `${method.toUpperCase()}-${routePath}`;
 
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -69,10 +69,13 @@
 
                         if (!route) {
                               app.log(`Router: No route for ${ routeKey }`, 'warn');
-                              return chirp.respond(404, {
-                                    error       : true,
-                                    code        : 404,
-                                    message     : "ERR_ROUTE_NF"
+                              return chirp.respond({
+                                    status    : 404,
+                                    message   : "ERR_MISSING_ROUTE",
+                                    headers   : {},
+                                    data      : {},
+                                    route     : routeKey,
+                                    ttl       : chirp.ttl.elapsed()
                               });
                         }
                         
@@ -82,13 +85,20 @@
                         
                         if (route.method.toUpperCase() !== method) {
                               app.log(`Router: Method not allowed ${method} for ${pathname}`, 'warn');
-                              return chirp.respond(405, {
-                                    error       : true,
-                                    code        : 405,
-                                    message     : "ERR_INVALID_METHOD"
+                              return chirp.respond({
+                                    status    : 406,
+                                    message   : "ERR_INVALID_ROUTE",
+                                    headers   : {},
+                                    data      : {},
+                                    route     : routeKey,
+                                    ttl       : chirp.ttl.elapsed()
                               });
                         }
                   
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                        //|| Execute Route
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/                        
+
                         return route.object.execute(chirp);
                   };
 

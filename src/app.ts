@@ -22,6 +22,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       import $vault                             from './.vault';
+      import Chirp                              from '~/classes/server/chirp';
       import FileWatcher                        from '~/classes/file.watcher';
       import Path                               from '~/classes/path';
 
@@ -74,7 +75,7 @@
       //|| Route - Placeholder
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      app.route = (chirp: Chirp) => {
+      app.route = (route : string, chirp: Chirp) => {
             app.log(`Request for routing (Route : ${ chirp.data('route') } ), but router is not configured`, 'error');
       };
             
@@ -100,8 +101,12 @@
                                     process.stdout.write(`\rPlugins located:  ${pluginCount}`);
                               }
                         } catch (err) {
-                              app.log(`Plugin load failed: ${file.relative}`, 'error');
+                              console.log();
+                              console.log("------------------------------------------------------------------");
+                              console.log(`Plugin load failed: ${file.relative}`);
                               console.log(err);
+                              console.log("------------------------------------------------------------------");
+                              console.log();
                         }
                   }
                   if (pluginCount > 0) process.stdout.write('\n');                  
@@ -155,7 +160,8 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Process Init Callback
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            if ( typeof(callback) === "function" ) callback();
+            if ( typeof(callback) === "function" ) await callback();
+            app.log("Application Started", "complete");
             return;
       };
 
