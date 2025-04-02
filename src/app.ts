@@ -69,6 +69,14 @@
       app.register = (name: string, plugin: Plugin) => {
             app._plugins.set(name, plugin);
       };
+
+      //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Route - Placeholder
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      app.route = (chirp: Chirp) => {
+            app.log(`Request for routing (Route : ${ chirp.data('route') } ), but router is not configured`, 'error');
+      };
             
       //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Loads the list of plugins from the plugins directory
@@ -79,22 +87,24 @@
             fw.recursive  = true;
             fw.extMatch   = 'ts';
             fw.callback   = async (files) => {
+                  let pluginCount = 0;
                   for (const file of files) {
                         try {
-                              app.log("Found plugin: " + app.path(file.relative).abs());
                               const pluginPath = pathToFileURL(app.path(file.relative).abs()).href;
                               const plugin      = await import(pluginPath);
                               const pluginClass = plugin?.default;
                               const pluginName  = pluginClass?.__pluginName;
                               if (pluginName) {
                                     app.register(pluginName, pluginClass);
-                                    app.log(`Plugin registered: ${pluginName}`, 'info');
+                                    pluginCount++;
+                                    process.stdout.write(`\rPlugins located:  ${pluginCount}`);
                               }
                         } catch (err) {
                               app.log(`Plugin load failed: ${file.relative}`, 'error');
                               console.log(err);
                         }
                   }
+                  if (pluginCount > 0) process.stdout.write('\n');                  
             };
             await fw.init();
       }            
@@ -107,9 +117,10 @@
             const plugin = app._plugins.get(type);
             if (plugin) {
                   try {
+                        app.log(`Plugin Loading: ${type}`, 'head');
                         await plugin.init(app, ...args);
                         plugin.enabled = true;
-                        app.log(`Plugin Loaded: ${type}`, 'info');
+                        app.log(`Plugin Loaded Successfully: ${type}`, 'success');
                   } catch (err) {
                         app.log(`Plugin Load Failed: ${type}`, 'error');
                   }
@@ -121,7 +132,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.init    = async(callback:Function) => {                       
-            app.log(`Application Starting [${process.env?.SERVER_NAME}] ...`, "head");
+            console.log(`Application Starting...`, "head");
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Environment Variables
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -129,8 +140,8 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Signals
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            if (await !app.lock()) return app.exit("Already Running");
-            app.lock(true);
+            // if (await !app.lock()) return app.exit("Already Running");
+            // app.lock(true);
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Signals
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -153,7 +164,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             
       app.defer   = async(callback:Function) => {
-            await unlink('./app.lock');
+            //await unlink('./app.lock');
             if (typeof(callback) === "function") app._defer.push(callback);
       }
 
@@ -177,7 +188,7 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Deferred Callbacks
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            await app.lock(false);            
+            //await app.lock(false);            
             return process.exit(0);
       }
 

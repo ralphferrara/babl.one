@@ -66,7 +66,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async init(): Promise<void> {
-                  app.log(`FileWatcher Initializing : [${ this.dir }]`, "info");
+                  console.log(`FileWatcher Initializing : [${ this.dir }]`);
                   this.remainDirs   = [this.dir];
                   this.list         = [];
                   await this.scan();

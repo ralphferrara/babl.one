@@ -1,21 +1,22 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| babl.one Plugin :: Redis Cache
-//|| Provides Redis-based caching using app.cache(name)
+//|| babl.one Plugin :: MySQL Database
+//|| Provides MySQL-based database access using app.db(name)
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import * as redis                          from 'redis';
-      import app                                 from '~/app';
-      import Plugin                              from '~/decorators/plugin';
+      import mysql                                from 'mysql2/promise';
+      import app                                  from '~/app';
+      import Plugin                               from '~/decorators/plugin';
+      import Recordset                            from '~/classes/recordset';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| RedisCache Class
+      //|| MySQLInstance Class
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      class RedisCache {
+      class MySQLInstance {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Var
@@ -24,15 +25,15 @@
             public name         : string;
             public client       : any;
             public status       : string;
-            public config       : { host: string; port: number; };
+            public config       : any;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            
+
             constructor(name: string, config: any) {
                   this.name         = name;
-                  this.status       = "INIT";
+                  this.status       = 'INIT';
                   this.config       = config;
                   this.client       = {};
             }
@@ -42,132 +43,123 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async connect() {
-                  app.log(`Connecting to Redis [${this.name}] @ ${this.config.host}:${this.config.port}`, "info");
+                  app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
                   try {
-                        const url   = `redis://${this.config.host}:${this.config.port}`;
-                        this.client = redis.createClient({ url });
-                        this.client.on('error', (err) => app.log(`Redis Error [${this.name}] :: ${err.message}`, 'error'));
-                        await this.client.connect();
-                        this.status = "OK";
-                        app.log(`Redis [${this.name}] Connected`, "success");
+                        this.client = await mysql.createPool({
+                              host                : this.config.host,
+                              user                : this.config.username,
+                              password            : this.config.password,
+                              database            : this.config.database,
+                              charset             : this.config.charset || 'utf8mb4',
+                              waitForConnections  : true,
+                              connectionLimit     : 10,
+                              queueLimit          : 0
+                        });
+                        const conn = await this.client.getConnection();
+                        conn.release();
+                        this.status = 'OK';
+                        app.log(`MySQL [${this.name}] Connected`, 'success');
                   } catch (err) {
-                        this.status = "FAIL";
-                        app.log(`Redis [${this.name}] Connection Failed`, "error");
+                        this.status = 'FAIL';
+                        app.log(`MySQL [${this.name}] Connection Failed`, 'error');
                         console.error(err);
                   }
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Get
+            //|| Query
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            async get(key: string): Promise<string | undefined> {
+            async query(sql: string, values: any[] = []): Promise<any> {
+                  const result = new Recordset(sql, values);
                   try {
-                        return await this.client.get(key);
+                        const conn = await this.client.getConnection();
+                        const [rows, fields] = await conn.execute(sql, values);
+                        conn.release();
+                        result.rows   = rows;
+                        result.fields = fields;
+                        result.count  = rows.length;
+                        result.status = 'OK';
                   } catch (err) {
-                        app.log(`Redis [${this.name}] Get Failed :: ${key}`, 'error');
-                        return undefined;
+                        result.status = 'ERROR';
+                        result.error  = err;
+                        app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
                   }
+                  return result;
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Set
+            //|| Close
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            async set(key: string, value: string, expires: number = 0): Promise<void> {
-                  const val = typeof value === 'object' ? JSON.stringify(value) : value;
-                  try {
-                        if (expires > 0) await this.client.set(key, val, { EX: expires });
-                        else await this.client.set(key, val);
-                  } catch (err) {
-                        app.log(`Redis [${this.name}] Set Failed :: ${key}`, 'error');
-                        console.error(err);
-                  }
+            async close(): Promise<void> {
+                  if (this.client?.end) await this.client.end();
+                  app.log(`Closed MySQL connection: ${this.name}`, 'info');
             }
 
-            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Delete
-            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-            async del(key: string): Promise<boolean> {
-                  try {
-                        await this.client.del(key);
-                        return true;
-                  } catch (err) {
-                        return false;
-                  }
-            }
-
-            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Flush
-            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-            async flush(): Promise<void> {
-                  try {
-                        await this.client.flushDb();
-                  } catch (err) {
-                        app.log(`Redis [${this.name}] Flush Failed`, 'error');
-                  }
-            }
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Redis Plugin
+      //|| MySQL Plugin
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      @Plugin('cache.redis', './config/cache.json')
-      export default class RedisPlugin {
+      @Plugin('db.mysql', './config/database.mysql.json')
+      export default class MySQLPlugin {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Initialize
+            //|| Init
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             static async init(app: any) {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Main tie in 
+                  //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const instances : Map<string, RedisCache> = new Map();
-                  app._cache = instances;                  
-                  const config    : any = await app.path('./config/cache.json').json({});
+                  const instances : Map<string, MySQLInstance> = new Map();
+                  const config    : any = await app.path('./config/database.mysql.json').json({});
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Main tie in 
+                  //|| Attach to App
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  
-                  app.cache = (name: string = 'default') => {
+
+                  app.db = (name: string = 'default') => {
                         return instances.get(name);
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Instances
+                  //|| Load Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   for (const name in config) {
-                        const instance = new RedisCache(name, config[name]);
+                        if (instances.has(name)) {
+                              app.log(`MySQL Conflict: Duplicate name '${name}'`, 'warn');
+                              continue;
+                        }
+                        const instance = new MySQLInstance(name, config[name]);
                         instances.set(name, instance);
                         await instance.connect();
                   }
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Defer close
+                  //|| Handle Defer Shutdown
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.defer(async () => {
-                        for (const [name, instance] of app._cache) {
-                              app.log(`Closing Redis cache: ${name}`, 'info');
+                        for (const [name, instance] of instances) {
                               try {
-                                    await instance.client.quit();
+                                    await instance.close();
                               } catch (err) {
-                                    app.log(`Failed to close Redis cache: ${name}`, 'error');
+                                    app.log(`Failed to close MySQL: ${name}`, 'error');
                               }
                         }
-                  });                  
+                  });
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| EOC
+                  //|| EOI
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+                  
             }
+
       }

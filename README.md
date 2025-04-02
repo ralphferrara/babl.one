@@ -16,8 +16,6 @@ It provides the runtime shell and system initializer — everything else is a pa
 
 - **Minimal Core** — start with nothing, add only what you need
 - **Fully Modular** — designed to load packages dynamically
-- **Runtime-first** — core app lifecycle with optional hooks
-- **No Monolith** — each feature (config, logger, http) is a standalone npm module
 
 ---
 

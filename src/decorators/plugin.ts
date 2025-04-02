@@ -3,7 +3,7 @@
 //|| Handles Reflect Metadata for Plugins
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export function Plugin(name: string, configFile?: string) {
+      export default function Plugin(name: string, configFile?: string) {
             return function (target: any) {
                   Reflect.defineProperty(target, '__pluginName', {
                         value: name,
