@@ -83,7 +83,7 @@
       //|| Loads the list of plugins from the plugins directory
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      app.plugins = async(dir : string = 'src/plugins') => {
+      app.plugins = async(dir : string = '/src/plugins') => {
             const fw = new FileWatcher(dir);
             fw.recursive  = true;
             fw.extMatch   = 'ts';
