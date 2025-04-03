@@ -1,6 +1,5 @@
-
-import path                               from 'path';
-
+import { mkdir, readdir, stat, copyFile } from 'fs/promises';
+import path from 'path';
 
 export default async function copyDefaultPlugins() {
       const localPluginsDir   = path.resolve('src/plugins');
