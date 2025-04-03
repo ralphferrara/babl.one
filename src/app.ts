@@ -9,7 +9,7 @@
 
       import { writeFile, unlink, access }      from 'fs/promises';
       import { constants }                      from 'fs';
-      import { fileURLToPath, pathToFileURL }   from 'url';
+      import { pathToFileURL }                  from 'url';
       import path                               from 'path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -27,6 +27,12 @@
       import FileWatcher                        from '~/classes/file.watcher';
       import Path                               from '~/classes/path';
 
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| NPM
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      import copyDefaultPlugins                 from '~/plugins';
+      
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| App
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -85,47 +91,37 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.plugins = async (dir: string = 'src/plugins') => {
-            const defaultDir = path.join(
-                  path.dirname(fileURLToPath(import.meta.url)),
-                  '../node_modules/@babl.one/plugins'
-            );
-      
-            const dirsToScan = [dir, defaultDir];
-            let pluginCount = 0;
-      
-            for (const scanDir of dirsToScan) {
-                  const fw = new FileWatcher(scanDir);
-                  fw.recursive = true;
-                  fw.extMatch = 'ts';
-      
-                  fw.callback = async (files) => {
-                        for (const file of files) {
-                              try {
-                                    const pluginPath = pathToFileURL(file.absolute).href;
-                                    const plugin = await import(pluginPath);
-                                    const pluginClass = plugin?.default;
-                                    const pluginName = pluginClass?.__pluginName;
-                                    if (pluginName) {
-                                          app.register(pluginName, pluginClass);
-                                          pluginCount++;
-                                          process.stdout.write(`\rPlugins located:  ${pluginCount}`);
-                                    }
-                              } catch (err) {
-                                    console.log();
-                                    console.log("------------------------------------------------------------------");
-                                    console.log(`Plugin load failed: ${file.relative}`);
-                                    console.log(err);
-                                    console.log("------------------------------------------------------------------");
-                                    console.log();
+            await copyDefaultPlugins();
+            const resolvedDir = path.resolve(process.cwd(), dir); // <- ✅ resolves to absolute path
+            const fw = new FileWatcher(resolvedDir);
+            fw.recursive  = true;
+            fw.extMatch   = 'ts';
+            fw.callback   = async (files) => {
+                  let pluginCount = 0;
+                  for (const file of files) {
+                        try {
+                              const pluginPath = pathToFileURL(file.absolute).href;
+                              const plugin      = await import(pluginPath);
+                              const pluginClass = plugin?.default;
+                              const pluginName  = pluginClass?.__pluginName;
+                              if (pluginName) {
+                                    app.register(pluginName, pluginClass);
+                                    pluginCount++;
+                                    process.stdout.write(`\rPlugins located:  ${pluginCount}`);
                               }
+                        } catch (err) {
+                              console.log();
+                              console.log("------------------------------------------------------------------");
+                              console.log(`Plugin load failed: ${file.relative}`);
+                              console.log(err);
+                              console.log("------------------------------------------------------------------");
+                              console.log();
                         }
-                  };
-      
-                  await fw.init();
-            }
-      
-            if (pluginCount > 0) process.stdout.write('\n');
-      };      
+                  }
+                  if (pluginCount > 0) process.stdout.write('\n');                  
+            };
+            await fw.init();
+      }            
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Load a plugin
