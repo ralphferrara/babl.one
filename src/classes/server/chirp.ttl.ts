@@ -68,12 +68,14 @@
             complete() {
                   this.completed    = new Date();
                   this.ttl          = this.elapsed();
+                  console.log('------------------------------------------------------------------------');
                   app.log(`TTL[${this.name}] : START ---`, 'ttl');
                   const steps = this.steps.map((step : ChirpTTLStep) => {
                         return `TTL[${this.name}] : ${step.descriptor} (${step.ttl}ms)`;
                   });
                   app.log(steps.join('\n'), 'ttl');
                   app.log(`TTL[${this.name}] : COMPLETED (${this.elapsed()}ms)`, 'ttl');
+                  console.log('------------------------------------------------------------------------');
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

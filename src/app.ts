@@ -123,7 +123,8 @@
             if (plugin) {
                   try {
                         app.log(`Plugin Loading: ${type}`, 'head');
-                        await plugin.init(app, ...args);
+                        const configPath = plugin.__pluginConfigFile ?? '';
+                        await plugin.init(app, configPath, ...args);
                         plugin.enabled = true;
                         app.log(`Plugin Loaded Successfully: ${type}`, 'success');
                   } catch (err) {

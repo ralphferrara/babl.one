@@ -86,8 +86,8 @@
                         if (route.method.toUpperCase() !== method) {
                               app.log(`Router: Method not allowed ${method} for ${pathname}`, 'warn');
                               return chirp.respond({
-                                    status    : 406,
-                                    message   : "ERR_INVALID_ROUTE",
+                                    status    : 405,
+                                    message   : "ERR_INVALID_METHOD",
                                     headers   : {},
                                     data      : {},
                                     route     : routeKey,
@@ -125,6 +125,7 @@
                                     const routeURL   = pathToFileURL(app.path(file.relative).abs()).href;
                                     const routeMod   = await import(routeURL);
                                     const RouteClass = routeMod?.default;
+                                    
                                     if (!RouteClass) continue;
 
                                     /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

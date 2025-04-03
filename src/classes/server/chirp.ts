@@ -151,6 +151,7 @@
                   if (this.responded) return;
                   this.responded  = true;
                   this.ttl.step("Chirp Response : " + responseData.status);
+                  app.log("Chirp : respond("+responseData.status+")", 'info');
                   this.ttl.complete();
                   return this.response.respond(responseData);
             }
