@@ -10,6 +10,7 @@
       import { writeFile, unlink, access }      from 'fs/promises';
       import { constants }                      from 'fs';
       import { pathToFileURL }                  from 'url';
+      import path                               from 'path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Interfaces
@@ -83,8 +84,9 @@
       //|| Loads the list of plugins from the plugins directory
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      app.plugins = async(dir : string = '/src/plugins') => {
-            const fw = new FileWatcher(dir);
+      app.plugins = async (dir: string = 'src/plugins') => {
+            const resolvedDir = path.resolve(process.cwd(), dir); // <- ✅ resolves to absolute path
+            const fw = new FileWatcher(resolvedDir);
             fw.recursive  = true;
             fw.extMatch   = 'ts';
             fw.callback   = async (files) => {
