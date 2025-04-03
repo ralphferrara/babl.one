@@ -91,7 +91,7 @@
                   let pluginCount = 0;
                   for (const file of files) {
                         try {
-                              const pluginPath = pathToFileURL(app.path(file.relative).abs()).href;
+                              const pluginPath = pathToFileURL(file.absolute).href;
                               const plugin      = await import(pluginPath);
                               const pluginClass = plugin?.default;
                               const pluginName  = pluginClass?.__pluginName;
