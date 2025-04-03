@@ -10,14 +10,14 @@
       import { fileURLToPath }            from 'url';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Queue Plugin
+      //|| Constants
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      const __dirname = path.dirname(fileURLToPath(import.meta.url));
-      const rl        = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const __dirname                     = path.dirname(fileURLToPath(import.meta.url));
+      const rl                            = readline.createInterface({ input: process.stdin, output: process.stdout });
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Queue Plugin
+      //|| Create Base Structure
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       async function createBaseStructure() {
@@ -38,7 +38,7 @@
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Queue Plugin
+      //|| Create Default Config Files
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       function writeConfig(name, content) {
@@ -80,6 +80,48 @@
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Create Entry File
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      function createDevFile() {
+            const file = path.join(__dirname, 'index.ts');
+            if (!fs.existsSync(file)) {
+                  fs.writeFileSync(file, 
+`/* Babl.one dev start file */
+import  app from '@babl.one/core';
+
+app.init(() =>{
+      // app.use('plugin-name');
+});`);
+
+                  console.log(`Created: index.ts`);
+            }
+      }
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Create package.json
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      function createPackageJSON() {
+            const file = path.join(__dirname, 'package.json');
+            if (!fs.existsSync(file)) {
+                  const pkg = {
+                        name: "babl-app",
+                        version: "0.1.0",
+                        type: "module",
+                        scripts: {
+                              dev: "tsx index.ts"
+                        },
+                        devDependencies: {
+                              tsx: "^4.0.0"
+                        }
+                  };
+                  fs.writeFileSync(file, JSON.stringify(pkg, null, 3));
+                  console.log(`Created: package.json`);
+            }
+      }
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Init
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
@@ -88,15 +130,18 @@
 
             await createBaseStructure();
             generateDefaultConfigs();
+            createDevFile();
+            createPackageJSON();
 
-            const install = await rl.question('\nInstall core packages? (y/n): ');
+            const install = await rl.question('\nInstall core packages and dev dependencies? (y/n): ');
             if (install.toLowerCase() === 'y') {
                   console.log('\n📦 Installing...');
                   const pkgs = [
-                        '@babl.one',
+                        '@babl.one/core',
+                        'tsx'
                   ];
                   const { execSync } = await import('child_process');
-                  execSync(`npm install ${pkgs.join(' ')}`, { stdio: 'inherit' });
+                  execSync(`npm install ${pkgs.join(' ')} --save`, { stdio: 'inherit' });
             }
 
             console.log('\n✅ Done! Your babl.one app is ready.\n');
