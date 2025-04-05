@@ -25,6 +25,7 @@
                   'src',
                   'src/routes',
                   'src/plugins',
+                  'src/consumers',
                   'config',
             ];
 
