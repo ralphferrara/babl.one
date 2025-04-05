@@ -40,6 +40,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             private list            : FileWatcherObject[] = [];
+            private _reloading      : boolean = false;
             private remainDirs      : string[] = [];
             private dir             : string;
             public recursive        : boolean;
@@ -66,7 +67,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async init(): Promise<void> {
-                  console.log(`FileWatcher Initializing : [${ this.dir }]`);
+                  app.log(`FileWatcher Initializing : [${ this.dir }]`, 'info');
                   this.remainDirs   = [this.dir];
                   this.list         = [];
                   await this.scan();
@@ -97,10 +98,14 @@
                               const stats       = await fs.stat(abs);
                               const isFile      = stats.isFile();
                               const isMatch     = typeof this.fileMatch === 'string';
+
                               /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Match
+                              //|| Match Ext
                               //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              if ((isMatch && !stats.isDirectory() && item === this.fileMatch) || !isMatch) {
+                              let ext = path.extname(relative).slice(1).replace('.', '');
+                              let extMatch = (typeof this.extMatch === 'string') ? this.extMatch.replace('.', '') : '';
+
+                              if ((this.extMatch === false || ext === extMatch) && ((isMatch && !stats.isDirectory() && item === this.fileMatch) || !isMatch)) {
                                     /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                                     //|| Match
                                     //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -111,30 +116,28 @@
                                           watcher     : null, // Watcher is added asynchronously below
                                           contents    : isFile ? await fs.readFile(abs) : null
                                     };
+
                                     /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                                     //|| Watcher
                                     //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                                    if (this.watch) {
+                                    if (this.watch && isFile) { 
                                           const watcher = chokidar.watch(abs, {
                                                 persistent: true
                                           });
                                           watcher
-                                          .on('change',     async () => {  await this.handleFileChange(); }) 
-                                          .on('unlink',     async () => {  await this.handleFileChange(); });
+                                          .on('change',     async () => { await this.handleFileChange(); }) 
+                                          .on('unlink',     async () => { await this.handleFileChange(); })
+                                          .on('add',        async () => { await this.handleFileChange(); });
                                           newFWObj.watcher = watcher;
                                     }
-                                    /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                                    //|| Match Ext
-                                    //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                                    let ext = path.extname(relative).slice(1).replace('.', '');
-                                    let extMatch = (typeof this.extMatch === 'string') ? this.extMatch.replace('.', '') : '';
-                                    if (this.extMatch === false || ext === extMatch) {
-                                          this.list.push(newFWObj);
-                                    }
+
+                                    this.list.push(newFWObj);
                               }
+
                               if (!isFile) this.remainDirs.push(thisPath + '/' + item);
                         })
                   );
+
                   if (this.remainDirs.length > 0 && this.recursive === true) {
                         await this.scan();
                   } else {
@@ -147,9 +150,20 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             private handleFileChange = async (): Promise<void> => {
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Prevent Recursive Reloading
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  if (this._reloading) return;
+                  this._reloading = true;                  
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Prevent Recursive Reloading
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   await this.closeAllWatchers();
-                  await this.init();
-            };                              
+                  this.list = [];
+                  this.remainDirs = [this.dir];
+                  await this.scan(); 
+                  this._reloading = false;
+            };                      
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Rescan
@@ -158,9 +172,7 @@
             async closeAllWatchers(): Promise<void> {
                   await Promise.all(
                         this.list.map(async (item) => {
-                              if (item.watcher !== null) {
-                                    item.watcher.close().then(() => {});
-                              }
+                              if (item.watcher) await item.watcher.close();
                         })
                   );
             }
@@ -182,7 +194,7 @@
             public async handleCallback(): Promise<void> {
                   const callbackResult = this.callback(this.list);
                   if (callbackResult instanceof Promise) {
-                      await callbackResult; // Wait for the promise to resolve if the callback is async
+                      await callbackResult;
                   }
             }
 

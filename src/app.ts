@@ -11,28 +11,23 @@
       import { constants }                      from 'fs';
       import { pathToFileURL }                  from 'url';
       import path                               from 'path';
+      import { spawn }                          from 'child_process';
+
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import Plugin                             from '~/interfaces/app/plugin';
+      import Plugin                             from './interfaces/app/plugin';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       import $vault                             from './.vault';
-      import Chirp                              from '~/classes/server/chirp';
-      import FileWatcher                        from '~/classes/file.watcher';
-      import Path                               from '~/classes/path';
+      import FileWatcher                        from './classes/file.watcher';
+      import Path                               from './classes/path';
 
-      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| NPM
-      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import copyDefaultPlugins                 from '~/plugins';
-      
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| App
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -45,6 +40,8 @@
 
       app._plugins      = new Map<string, Plugin>();
       app._defer        = [] as Function[];
+      app._reboot       = false;
+      app._init         = false;
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Path
@@ -82,7 +79,7 @@
       //|| Route - Placeholder
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      app.route = (route : string, chirp: Chirp) => {
+      app.route = (route : string, chirp: any) => {
             app.log(`Request for routing (Route : ${ chirp.data('route') } ), but router is not configured`, 'error');
       };
             
@@ -91,16 +88,26 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.plugins = async (dir: string = 'src/plugins') => {
-            await copyDefaultPlugins();
             const resolvedDir = path.resolve(process.cwd(), dir); // <- ✅ resolves to absolute path
             const fw = new FileWatcher(resolvedDir);
             fw.recursive  = true;
             fw.extMatch   = 'ts';
+            fw.watch      = (process.env.NODE_ENV === 'production') ? false : true;
             fw.callback   = async (files) => {
+                  //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Reboot on plugin change
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  if (app._init && process.env.NODE_ENV !== 'production') { 
+                        app._reboot       = true;
+                        return app.exit();
+                  }
+                  //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Find plugins 
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   let pluginCount = 0;
                   for (const file of files) {
                         try {
-                              const pluginPath = pathToFileURL(file.absolute).href;
+                              const pluginPath  = ( process.env.NODE_ENV === 'production' ) ? pathToFileURL(file.absolute).href : pathToFileURL(file.absolute).href + `?update=${Date.now()}`;
                               const plugin      = await import(pluginPath);
                               const pluginClass = plugin?.default;
                               const pluginName  = pluginClass?.__pluginName;
@@ -147,7 +154,13 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.init    = async(callback:Function) => {                       
-            console.log(`Application Starting...`, "head");
+            console.clear();
+            app.log(`Application Starting...`, "head");
+            app.log(`Application PID: ${process.pid}`, "head");
+            app.log(`Application Node Version: ${process.versions.node}`, "head");
+            app.log(`Application Platform: ${process.platform}`, "head");
+            app.log(`Application Directory: ${process.cwd()}`, "head");
+            app.log(`Application Environment: ${process.env.NODE_ENV}`, "head");
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Environment Variables
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -155,8 +168,8 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Signals
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            // if (await !app.lock()) return app.exit("Already Running");
-            // app.lock(true);
+            if (await !app.lock()) return app.exit("Already Running");
+            app.lock(true);
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Signals
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -172,6 +185,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             if ( typeof(callback) === "function" ) await callback();
             app.log("Application Started", "complete");
+            app._init         = true;            
             return;
       };
 
@@ -199,13 +213,30 @@
                   } catch (err) {
                         app.log("Deferred callback failed", 'error');
                         console.error(err);
-                  }
+                  } 
             }        
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| 
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+            if (typeof(callback) === 'function') await callback();
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Deferred Callbacks
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            //await app.lock(false);            
-            return process.exit(0);
+            await app.lock(false);            
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Reboot
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+            if (app._reboot) {
+                  app.log("Rebooting...", "head");
+                  const entry = path.resolve('src/index.dev.ts');
+                  const tsxPath = path.resolve('node_modules', '.bin', process.platform === 'win32' ? 'tsx.cmd' : 'tsx');
+                  const child = spawn(tsxPath, ['src/index.dev.ts'], {
+                        cwd   : process.cwd(),
+                        stdio : 'inherit',
+                        env   : process.env
+                  });               
+                  setTimeout(() => process.exit(0), 100);
+            } else process.exit(0);
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -221,12 +252,12 @@
                   return false;
             }
             if (lock) {
-                  console.log('Locking');
+                  app.log('Creating lock file', 'info');
                   await writeFile(lockPath, String(process.pid));
             }
             if (!lock) try { 
                   await unlink(lockPath); 
-                  console.log("Unlocked");
+                  app.log('Released lock file', 'info');
             } catch {}
             return lock;
       };

@@ -1,4 +1,8 @@
 node_modules
 dist
 .env
+coverage/
 src/index.dev.ts
+src/plugins/chat
+src/routes/chat
+src/consumers/
