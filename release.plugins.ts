@@ -1,8 +1,6 @@
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { build } from 'tsup';
-import fetch from 'node-fetch';
 
 const PLUGIN_ROOT = path.resolve('plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
@@ -10,28 +8,27 @@ const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?
 // Logger
 const log = (msg: string) => console.log(`\x1b[36m[release:plugin]\x1b[0m ${msg}`);
 
-// Bump version helper
+// Version bumper
 function bumpVersion(version: string, type = 'patch'): string {
    const parts = version.split('.').map(Number);
-   if (type === 'major')      { parts[0]++; parts[1] = 0; parts[2] = 0; }
-   else if (type === 'minor') { parts[1]++; parts[2] = 0; }
-   else                       { parts[2]++; }
+   if (type === 'major') {
+      parts[0]++;
+      parts[1] = 0;
+      parts[2] = 0;
+   } else if (type === 'minor') {
+      parts[1]++;
+      parts[2] = 0;
+   } else {
+      parts[2]++;
+   }
    return parts.join('.');
 }
 
-// Find all plugin package.json files
+// Find plugin package.json files
 function findPluginPackages(dir: string): string[] {
    return fs.readdirSync(dir)
       .map(p => path.join(dir, p, 'package.json'))
       .filter(pkgPath => fs.existsSync(pkgPath));
-}
-
-// Check if version already published
-async function isPublished(name: string, version: string): Promise<boolean> {
-   const res = await fetch(`https://registry.npmjs.org/${encodeURIComponent(name)}`);
-   if (!res.ok) return false;
-   const data = await res.json();
-   return Boolean(data.versions?.[version]);
 }
 
 // Main
@@ -42,29 +39,16 @@ for (const pkgPath of pluginPackages) {
    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
    const current = pkg.version;
    const next = bumpVersion(current, bumpType);
-
-   const alreadyPublished = await isPublished(pkg.name, next);
-   if (alreadyPublished) {
-      log(`⚠️  Skipping ${pkg.name}@${next} (already published)`);
-      continue;
-   }
-
    pkg.version = next;
+
    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 3));
    log(`📦 ${pkg.name}: ${current} → ${next}`);
 
-   // Build plugin
-   const entry = path.join(dir, 'index.ts');
-   await build({
-      entry: [entry],
-      outDir: path.join('dist/plugins', path.relative(PLUGIN_ROOT, dir)),
-      format: ['esm'],
-      target: 'es2022',
-      clean: true,
-      dts: false
-   });
-
-   // Publish plugin
    log(`📤 Publishing ${pkg.name}@${next}`);
-   execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
+   try {
+      execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
+   } catch (err) {
+      console.error(`\x1b[31m[release:plugin:error]\x1b[0m Failed to publish ${pkg.name}@${next}`);
+      console.error(err.message || err);
+   }
 }
