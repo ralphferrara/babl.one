@@ -86,10 +86,12 @@ function hasHashChanged(pluginDir: string): boolean {
    if (fs.existsSync(hashFile)) {
       const storedHash = fs.readFileSync(hashFile, 'utf8').trim();
       const currentHash = getFileHash(indexFile);
+      log(`Stored hash: ${storedHash}, Current hash: ${currentHash}`);
       return storedHash !== currentHash;
    }
 
    // If hash file doesn't exist, consider it changed
+   log('No hash file found. Considering as changed.');
    return true;
 }
 
