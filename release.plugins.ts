@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import https from 'https';
+import crypto from 'crypto';
 
 const PLUGIN_ROOT = path.resolve('src/plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
@@ -69,6 +70,29 @@ async function versionExists(pkgName: string, version: string): Promise<boolean>
    });
 }
 
+// Function to get MD5 hash of the file
+function getFileHash(filePath: string): string {
+   const fileBuffer = fs.readFileSync(filePath);
+   const hash = crypto.createHash('md5');
+   hash.update(fileBuffer);
+   return hash.digest('hex');
+}
+
+// Check if the hash has changed
+function hasHashChanged(pluginDir: string): boolean {
+   const indexFile = path.join(pluginDir, 'dist', 'index.js');
+   const hashFile = path.join(pluginDir, '.index.hash.md5');
+
+   if (fs.existsSync(hashFile)) {
+      const storedHash = fs.readFileSync(hashFile, 'utf8').trim();
+      const currentHash = getFileHash(indexFile);
+      return storedHash !== currentHash;
+   }
+
+   // If hash file doesn't exist, consider it changed
+   return true;
+}
+
 const pluginPackages = findPluginPackages(PLUGIN_ROOT);
 log(`Found plugin packages: ${pluginPackages.length}`);
 
@@ -77,6 +101,12 @@ for (const pkgPath of pluginPackages) {
    const oldPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
    const current = oldPkg.version;
    const next = bumpVersion(current, bumpType);
+
+   // Only bump and publish if the hash has changed
+   if (!hasHashChanged(dir)) {
+      log(`⚠️  Skipping ${oldPkg.name}@${next} (no changes to index.js)`);
+      continue;
+   }
 
    const alreadyPublished = await versionExists(oldPkg.name, next);
    if (alreadyPublished) {
@@ -90,6 +120,12 @@ for (const pkgPath of pluginPackages) {
 
    try {
       log(`📤 Publishing ${newPkg.name}@${next}`);
+
+      // Save the new hash
+      const indexFile = path.join(dir, 'dist', 'index.js');
+      const hash = getFileHash(indexFile);
+      fs.writeFileSync(path.join(dir, '.index.hash.md5'), hash);
+
       execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
    } catch (err) {
       console.error(`\x1b[31m[release:plugin:error]\x1b[0m Failed to publish ${newPkg.name}@${next}`);
