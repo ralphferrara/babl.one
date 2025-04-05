@@ -1,15 +1,15 @@
 import path from 'path';
 import fs from 'fs';
-import https from 'https';
 import { execSync } from 'child_process';
+import https from 'https';
 
 const PLUGIN_ROOT = path.resolve('src/plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
 
 const log = (msg: string) => console.log(`\x1b[36m[release:plugin]\x1b[0m ${msg}`);
 
-// Version bumping logic
-function bumpVersion(version: string, type: string = 'patch'): string {
+// Version bumping function
+function bumpVersion(version: string, type = 'patch'): string {
    const parts = version.split('.').map(Number);
    if (type === 'major') {
       parts[0]++;
@@ -24,17 +24,43 @@ function bumpVersion(version: string, type: string = 'patch'): string {
    return parts.join('.');
 }
 
-// Check if a version exists on NPM
+// Function to recursively find plugin packages
+function findPluginPackages(dir: string): string[] {
+   let results: string[] = [];
+   
+   // Read the contents of the directory
+   const list = fs.readdirSync(dir);
+   list.forEach((subdir) => {
+      const fullPath = path.join(dir, subdir);
+      const stat = fs.statSync(fullPath);
+      
+      // If it's a directory, recursively search it
+      if (stat.isDirectory()) {
+         const packageJsonPath = path.join(fullPath, 'package.json');
+         if (fs.existsSync(packageJsonPath)) {
+            results.push(packageJsonPath);
+         }
+         
+         // Recursively search subdirectories
+         results = results.concat(findPluginPackages(fullPath));
+      }
+   });
+   
+   return results;
+}
+
+// Check if the version already exists on npm
 async function versionExists(pkgName: string, version: string): Promise<boolean> {
-   const url = `https://registry.npmjs.org/${encodeURIComponent(pkgName)}`;
+   const encoded = encodeURIComponent(pkgName);
+   const url = `https://registry.npmjs.org/${encoded}`;
    return new Promise(resolve => {
       https.get(url, res => {
-         let body = '';
-         res.on('data', chunk => body += chunk);
+         let data = '';
+         res.on('data', chunk => (data += chunk));
          res.on('end', () => {
             try {
-               const data = JSON.parse(body);
-               resolve(data.versions?.[version] !== undefined);
+               const json = JSON.parse(data);
+               resolve(Boolean(json.versions?.[version]));
             } catch {
                resolve(false);
             }
@@ -43,40 +69,30 @@ async function versionExists(pkgName: string, version: string): Promise<boolean>
    });
 }
 
-// Find all plugin package.json files
-function findPluginPackages(dir: string): string[] {
-   return fs.readdirSync(dir)
-      .map(name => path.join(dir, name, 'package.json'))
-      .filter(pkgPath => fs.existsSync(pkgPath));
-}
-
-// Main
 const pluginPackages = findPluginPackages(PLUGIN_ROOT);
+log(`Found plugin packages: ${pluginPackages.length}`);
 
 for (const pkgPath of pluginPackages) {
    const dir = path.dirname(pkgPath);
-   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-   const current = pkg.version;
+   const oldPkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+   const current = oldPkg.version;
+   const next = bumpVersion(current, bumpType);
 
-   let next = current;
-   while (await versionExists(pkg.name, next)) {
-      log(`⚠️  ${pkg.name}@${next} already published. Bumping...`);
-      next = bumpVersion(next, bumpType);
+   const alreadyPublished = await versionExists(oldPkg.name, next);
+   if (alreadyPublished) {
+      log(`⚠️  Skipping ${oldPkg.name}@${next} (already published)`);
+      continue;
    }
 
-   if (next !== current) {
-      pkg.version = next;
-      fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 3));
-      log(`📦 ${pkg.name}: ${current} → ${next}`);
-   } else {
-      log(`✅ ${pkg.name} is already unpublished at ${current}`);
-   }
+   const newPkg = { ...oldPkg, version: next };
+   fs.writeFileSync(pkgPath, JSON.stringify(newPkg, null, 3));
+   log(`📦 ${newPkg.name}: ${current} → ${next}`);
 
    try {
-      log(`📤 Publishing ${pkg.name}@${pkg.version}`);
+      log(`📤 Publishing ${newPkg.name}@${next}`);
       execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
-   } catch (err: any) {
-      console.error(`\x1b[31m[release:plugin:error]\x1b[0m Failed to publish ${pkg.name}@${pkg.version}`);
+   } catch (err) {
+      console.error(`\x1b[31m[release:plugin:error]\x1b[0m Failed to publish ${newPkg.name}@${next}`);
       console.error(err.message || err);
    }
 }
