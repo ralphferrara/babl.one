@@ -21,6 +21,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       try {
+            log(`Args: ${process.argv.slice(2).join(', ')}`);
             log('Reading package.json...');
             const pkg                  = JSON.parse(readFileSync('package.json', 'utf8'));
 

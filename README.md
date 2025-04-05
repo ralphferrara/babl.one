@@ -16,6 +16,7 @@ It provides the runtime shell and system initializer — everything else is a pa
 
 - **Minimal Core** — start with nothing, add only what you need
 - **Fully Modular** — designed to load packages dynamically
+- **Hot Reloads** - develop in record time
 
 ---
 
