@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/plugin-logging-pretty",
-   "version": "1.0.3",
+   "version": "1.0.4",
    "description": "Pretty logger plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
