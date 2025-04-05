@@ -23,4 +23,6 @@ It provides the runtime shell and system initializer — everything else is a pa
 ## Installation
 
 ```bash
+npm create babl-one myTestApp
+or 
 npm install @babl.one/core

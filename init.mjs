@@ -13,7 +13,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       const rl                            = readline.createInterface({ input: process.stdin, output: process.stdout });
-      const root                          = process.cwd(); // ✅ Always use this
+      const root                          = process.cwd();
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Create Base Structure
@@ -46,9 +46,7 @@
 
       async function runInit() {
             console.log('Initializing babl.one project...\n');
-
             await createBaseStructure();
-
             console.log('Installing...');
             const pkgs = [
                   '@babl.one/core',
