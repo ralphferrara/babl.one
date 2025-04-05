@@ -25,7 +25,8 @@
             const pkg                  = JSON.parse(readFileSync('package.json', 'utf8'));
 
             const currentVersion       = pkg.version;
-            const nextVersion          = bumpPatch(currentVersion);
+            const bumpType             = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
+            const nextVersion          = bumpVersion(currentVersion, bumpType);
             pkg.version                = nextVersion;
 
             writeFileSync('package.json', JSON.stringify(pkg, null, 3));
@@ -55,8 +56,17 @@
       //|| Patch Bump Helper
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      function bumpPatch(version) {
-            const parts                = version.split('.').map(Number);
-            parts[2]++;
+      function bumpVersion(version, type = 'patch') {
+            const parts = version.split('.').map(Number);
+            if (type === 'major') {
+                  parts[0]++;
+                  parts[1] = 0;
+                  parts[2] = 0;
+            } else if (type === 'minor') {
+                  parts[1]++;
+                  parts[2] = 0;
+            } else {
+                  parts[2]++;
+            }
             return parts.join('.');
       }
