@@ -171,7 +171,7 @@
       //|| Load a plugin
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
       
-      app.use     = async (type: string, ...args: any[]) => {
+      app.use = async (type: string, ...args: any[]) => {
             const plugin = app._plugins.get(type);
             if (plugin) {
                   try {
@@ -183,6 +183,10 @@
                   } catch (err) {
                         app.log(`Plugin Load Failed: ${type}`, 'error');
                   }
+            } else {
+                  // Suggest the npm install command for the missing plugin
+                  app.log(`Plugin Not Found: ${type}. To install it, run:`, 'error');
+                  app.log(`npm install @babl.one/${type}`, 'fail');
             }
       };
 
