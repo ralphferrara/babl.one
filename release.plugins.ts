@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import { build } from 'tsup';
 
 const PLUGIN_ROOT = path.resolve('plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
@@ -43,6 +44,17 @@ for (const pkgPath of pluginPackages) {
 
    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 3));
    log(`📦 ${pkg.name}: ${current} → ${next}`);
+
+   // ✅ Build plugin before publish
+   const entry = path.join(dir, 'index.ts');
+   await build({
+      entry: [entry],
+      outDir: path.join('dist/plugins', path.relative(PLUGIN_ROOT, dir)),
+      format: ['esm'],
+      target: 'es2022',
+      clean: true,
+      dts: false
+   });
 
    log(`📤 Publishing ${pkg.name}@${next}`);
    execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
