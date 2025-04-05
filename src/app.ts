@@ -130,6 +130,43 @@
             await fw.init();
       }            
 
+      //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Loads the list of plugins from the dist plugins directory
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      app._plugins = async (dir: string = 'node_modules/@babl.one') => {
+            const resolvedDir = path.resolve(process.cwd(), dir); // Resolves to absolute path
+            const fw = new FileWatcher(resolvedDir);
+            fw.recursive = true;
+            fw.extMatch = 'js'; // Looking for compiled JS files
+            fw.watch = false;  // No need to watch in production
+            fw.callback = async (files) => {
+                  let pluginCount = 0;
+                  for (const file of files) {
+                        try {
+                              const pluginPath = pathToFileURL(file.absolute).href;
+                              const plugin = await import(pluginPath);
+                              const pluginClass = plugin?.default;
+                              const pluginName = pluginClass?.__pluginName;
+                              if (pluginName) {
+                                    app.register(pluginName, pluginClass);
+                                    pluginCount++;
+                                    process.stdout.write(`\rPlugins located:  ${pluginCount}`);
+                              }
+                        } catch (err) {
+                              console.log();
+                              console.log("------------------------------------------------------------------");
+                              console.log(`Plugin load failed: ${file.relative}`);
+                              console.log(err);
+                              console.log("------------------------------------------------------------------");
+                              console.log();
+                        }
+                  }
+                  if (pluginCount > 0) process.stdout.write('\n');
+            };
+            await fw.init();
+      };      
+
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Load a plugin
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -179,7 +216,7 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Plugins
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            await app.plugins('dist/plugins');
+            await app._plugins();
             await app.plugins();
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Process Init Callback
