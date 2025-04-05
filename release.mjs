@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
+import crypto from 'crypto';
 
 // Logger
 const log = (msg) => console.log(`\x1b[36m[release]\x1b[0m ${msg}`);
@@ -29,6 +30,37 @@ function findPlugins(dir) {
         }
     }
     return result;
+}
+
+// Function to get MD5 hash of the file
+function getFileHash(filePath) {
+    const fileBuffer = readFileSync(filePath);
+    const hash = crypto.createHash('md5');
+    hash.update(fileBuffer);
+    return hash.digest('hex');
+}
+
+// Check if the hash has changed
+function hasHashChanged(pluginDir) {
+    const indexFile = path.join(pluginDir, 'dist', 'index.js');
+    const hashFile = path.join(pluginDir, '.index.hash.md5');
+
+    log(`Checking hash for: ${indexFile}`);
+
+    if (statSync(indexFile, { throwIfNoEntry: false })) {
+        if (statSync(hashFile, { throwIfNoEntry: false })) {
+            const storedHash = readFileSync(hashFile, 'utf8').trim();
+            const currentHash = getFileHash(indexFile);
+            log(`Stored hash: ${storedHash}, Current hash: ${currentHash}`);
+            return storedHash !== currentHash;
+        }
+
+        log('No hash file found. Considering it changed.');
+        return true;
+    }
+
+    log(`No index.js found in ${pluginDir}`);
+    return false;
 }
 
 // Main
@@ -69,9 +101,20 @@ try {
 
         log(`→ ${plugin.name} (${currentPluginVersion}) → ${nextPluginVersion}`);
 
-        // Publish the plugin
+        // Only publish the plugin if the hash has changed
+        if (!hasHashChanged(dir)) {
+            log(`⚠️  Skipping ${plugin.name}@${nextPluginVersion} (no changes to index.js)`);
+            continue;
+        }
+
         try {
             log(`📤 Publishing ${plugin.name}@${nextPluginVersion}`);
+
+            // Save the new hash
+            const indexFile = path.join(dir, 'dist', 'index.js');
+            const hash = getFileHash(indexFile);
+            writeFileSync(path.join(dir, '.index.hash.md5'), hash);
+
             execSync('npm publish --access public', { cwd: dir, stdio: 'inherit' });
         } catch (err) {
             console.error(`\x1b[31m[release:plugin:error]\x1b[0m Failed to publish ${plugin.name}@${nextPluginVersion}`);
