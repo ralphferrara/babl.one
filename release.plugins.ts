@@ -1,25 +1,49 @@
-import { execSync } from 'child_process';
-import { readdirSync, statSync, readFileSync } from 'fs';
 import path from 'path';
+import fs from 'fs';
+import { execSync } from 'child_process';
 
-const walk = (dir: string): string[] => {
-   let dirs: string[] = [];
-   for (const entry of readdirSync(dir)) {
-      const entryPath = path.join(dir, entry);
-      if (statSync(entryPath).isDirectory()) {
-         if (readdirSync(entryPath).includes('package.json')) {
-            dirs.push(entryPath);
-         }
-         dirs = dirs.concat(walk(entryPath));
-      }
+const PLUGIN_ROOT = path.resolve('plugins');
+const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
+
+// Logger
+const log = (msg: string) => console.log(`\x1b[36m[release:plugin]\x1b[0m ${msg}`);
+
+// Version bumper
+function bumpVersion(version: string, type = 'patch'): string {
+   const parts = version.split('.').map(Number);
+   if (type === 'major') {
+      parts[0]++;
+      parts[1] = 0;
+      parts[2] = 0;
+   } else if (type === 'minor') {
+      parts[1]++;
+      parts[2] = 0;
+   } else {
+      parts[2]++;
    }
-   return dirs;
-};
+   return parts.join('.');
+}
 
-const pluginDirs = walk('src/plugins');
+// Find plugin package.json files
+function findPluginPackages(dir: string): string[] {
+   return fs.readdirSync(dir)
+      .map(p => path.join(dir, p, 'package.json'))
+      .filter(pkgPath => fs.existsSync(pkgPath));
+}
 
-for (const dir of pluginDirs) {
-   const pkg = JSON.parse(readFileSync(path.join(dir, 'package.json'), 'utf-8'));
-   console.log(`🚀 Publishing: ${pkg.name}@${pkg.version}`);
-   execSync(`npm publish --access public`, { cwd: dir, stdio: 'inherit' });
+// Main
+const pluginPackages = findPluginPackages(PLUGIN_ROOT);
+
+for (const pkgPath of pluginPackages) {
+   const dir = path.dirname(pkgPath);
+   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+   const current = pkg.version;
+   const next = bumpVersion(current, bumpType);
+   pkg.version = next;
+
+   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 3));
+   log(`📦 ${pkg.name}: ${current} → ${next}`);
+
+   log(`📤 Publishing ${pkg.name}@${next}`);
+   execSync(`npm publish ${dir} --access public`, { stdio: 'inherit' });
 }
