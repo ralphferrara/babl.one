@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
 
-const PLUGIN_ROOT = path.resolve('plugins');
+const PLUGIN_ROOT = path.resolve('src/plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
 
 const log = (msg: string) => console.log(`\x1b[36m[release:plugin]\x1b[0m ${msg}`);
