@@ -7,14 +7,13 @@
       import fs                           from 'fs';
       import path                         from 'path';
       import readline                     from 'readline/promises';
-      import { fileURLToPath }            from 'url';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Constants
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      const __dirname                     = path.dirname(fileURLToPath(import.meta.url));
       const rl                            = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const root                          = process.cwd(); // ✅ Always use this
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Create Base Structure
@@ -30,7 +29,7 @@
             ];
 
             for (const dir of folders) {
-                  const fullPath = path.join(__dirname, dir);
+                  const fullPath = path.join(root, dir);
                   if (!fs.existsSync(fullPath)) {
                         fs.mkdirSync(fullPath, { recursive: true });
                         console.log(`Created: ${dir}`);
@@ -43,7 +42,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       function writeConfig(name, content) {
-            const filePath = path.join(__dirname, 'config', name);
+            const filePath = path.join(root, 'config', name);
             if (!fs.existsSync(filePath)) {
                   fs.writeFileSync(filePath, JSON.stringify(content, null, 3));
                   console.log(`Config created: config/${name}`);
@@ -85,26 +84,25 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       function createDevFile() {
-            const file = path.join(__dirname, 'index.ts');
+            const file = path.join(root, 'index.ts');
             if (!fs.existsSync(file)) {
-                  fs.writeFileSync(file, 
-`/* Babl.one dev start file */
-import  app from '@babl.one/core';
+                  fs.writeFileSync(file,
+      `/* Babl.one dev start file */
+      import app from '@babl.one/core';
 
-app.init(() =>{
-      // app.use('plugin-name');
-});`);
-
+      app.init(() =>{
+            // app.use('plugin-name');
+      });`);
                   console.log(`Created: index.ts`);
             }
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Create package.json
+      //|| Create package.json (if missing)
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       function createPackageJSON() {
-            const file = path.join(__dirname, 'package.json');
+            const file = path.join(root, 'package.json');
             if (!fs.existsSync(file)) {
                   const pkg = {
                         name: "babl-app",
