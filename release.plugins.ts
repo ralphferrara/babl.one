@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { execSync } from 'child_process';
+import https from 'https';
 
 const PLUGIN_ROOT = path.resolve('src/plugins');
 const bumpType = process.argv.find(arg => ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';
@@ -28,6 +29,25 @@ function findPluginPackages(dir: string): string[] {
       .filter(pkg => fs.existsSync(pkg));
 }
 
+async function versionExists(pkgName: string, version: string): Promise<boolean> {
+   const encoded = encodeURIComponent(pkgName);
+   const url = `https://registry.npmjs.org/${encoded}`;
+   return new Promise(resolve => {
+      https.get(url, res => {
+         let data = '';
+         res.on('data', chunk => (data += chunk));
+         res.on('end', () => {
+            try {
+               const json = JSON.parse(data);
+               resolve(Boolean(json.versions?.[version]));
+            } catch {
+               resolve(false);
+            }
+         });
+      }).on('error', () => resolve(false));
+   });
+}
+
 const pluginPackages = findPluginPackages(PLUGIN_ROOT);
 
 for (const pkgPath of pluginPackages) {
@@ -36,10 +56,14 @@ for (const pkgPath of pluginPackages) {
    const current = oldPkg.version;
    const next = bumpVersion(current, bumpType);
 
-   // Write updated version
+   const alreadyPublished = await versionExists(oldPkg.name, next);
+   if (alreadyPublished) {
+      log(`⚠️  Skipping ${oldPkg.name}@${next} (already published)`);
+      continue;
+   }
+
    const newPkg = { ...oldPkg, version: next };
    fs.writeFileSync(pkgPath, JSON.stringify(newPkg, null, 3));
-
    log(`📦 ${newPkg.name}: ${current} → ${next}`);
 
    try {
