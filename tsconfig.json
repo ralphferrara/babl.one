@@ -10,6 +10,7 @@
             "moduleResolution"   : "node",
             "declaration"        : true,
             "outDir"             : "dist",
+            "exclude"            : ["dist", "node_modules"],
             "strict"             : true,
             "esModuleInterop"    : true,
             "resolveJsonModule"  : true,
@@ -24,7 +25,5 @@
             }
       },
 
-      "include": [
-            "src"
-, "src/.vault.ts"      ]
+      "include": ["src", "src/.vault.ts"]
 }

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/62</span>
+                <span class='fraction'>0/73</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/62</span>
+                <span class='fraction'>0/73</span>
             </div>
         
             
@@ -125,7 +125,17 @@
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
 <a name='L62'></a><a href='#L62'>62</a>
-<a name='L63'></a><a href='#L63'>63</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -187,7 +197,17 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" >/*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||<span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" ></span></span></span>
 <span class="cstat-no" title="statement not covered" >//|| babl.one :: release.mjs</span>
 <span class="cstat-no" title="statement not covered" >//|| Standalone Release Script - Bumps patch version, builds, commits, tags, pushes, and publishes</span>
 <span class="cstat-no" title="statement not covered" >//||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/</span>
@@ -210,11 +230,13 @@
 <span class="cstat-no" title="statement not covered" >      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >      try {</span>
+<span class="cstat-no" title="statement not covered" >            log(`Args: ${process.argv.slice(2).join(', ')}`);</span>
 <span class="cstat-no" title="statement not covered" >            log('Reading package.json...');</span>
 <span class="cstat-no" title="statement not covered" >            const pkg                  = JSON.parse(readFileSync('package.json', 'utf8'));</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >            const currentVersion       = pkg.version;</span>
-<span class="cstat-no" title="statement not covered" >            const nextVersion          = bumpPatch(currentVersion);</span>
+<span class="cstat-no" title="statement not covered" >            const bumpType             = process.argv.find(arg =&gt; ['--major', '--minor'].includes(arg))?.replace('--', '') || 'patch';</span>
+<span class="cstat-no" title="statement not covered" >            const nextVersion          = bumpVersion(currentVersion, bumpType);</span>
 <span class="cstat-no" title="statement not covered" >            pkg.version                = nextVersion;</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >            writeFileSync('package.json', JSON.stringify(pkg, null, 3));</span>
@@ -244,19 +266,27 @@
 <span class="cstat-no" title="statement not covered" >      //|| Patch Bump Helper</span>
 <span class="cstat-no" title="statement not covered" >      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >      function bumpPatch(version) {</span>
-<span class="cstat-no" title="statement not covered" >            const parts                = version.split('.').map(Number);</span>
-<span class="cstat-no" title="statement not covered" >            parts[2]++;</span>
+<span class="cstat-no" title="statement not covered" >      function bumpVersion(version, type = 'patch') {</span>
+<span class="cstat-no" title="statement not covered" >            const parts = version.split('.').map(Number);</span>
+<span class="cstat-no" title="statement not covered" >            if (type === 'major') {</span>
+<span class="cstat-no" title="statement not covered" >                  parts[0]++;</span>
+<span class="cstat-no" title="statement not covered" >                  parts[1] = 0;</span>
+<span class="cstat-no" title="statement not covered" >                  parts[2] = 0;</span>
+<span class="cstat-no" title="statement not covered" >            } else if (type === 'minor') {</span>
+<span class="cstat-no" title="statement not covered" >                  parts[1]++;</span>
+<span class="cstat-no" title="statement not covered" >                  parts[2] = 0;</span>
+<span class="cstat-no" title="statement not covered" >            } else {</span>
+<span class="cstat-no" title="statement not covered" >                  parts[2]++;</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
 <span class="cstat-no" title="statement not covered" >            return parts.join('.');</span>
-<span class="cstat-no" title="statement not covered" >      }</span>
-&nbsp;</pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >      }</span></pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-04-05T03:00:36.085Z
+                at 2025-04-05T03:54:47.962Z
             </div>
         <script src="../prettify.js"></script>
         <script>
