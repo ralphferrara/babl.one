@@ -6,27 +6,28 @@
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import amqplib                                from 'amqplib';
+      
+      import * as amqplib                           from 'amqplib';
+      import { ChannelModel, Connection, Channel } from 'amqplib'; // Import necessary types
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Decorators
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import Plugin                                 from '~/decorators/plugin';
+      import Plugin                                 from '../../../decorators/plugin';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app                                    from '../../app';
+      import app                                    from '../../../app';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      interface Channel {             
-            channel     : amqplib.Channel;
+      interface QueueChannel {             
+            channel     : Channel;
             queues      : string[];
       }
 
@@ -42,8 +43,9 @@
 
             public name            : string;
             public config          : any;
-            public conn            : amqplib.Connection | null = null;
-            public channels        : Map<string, Channel> = new Map();
+            private conn: Connection | null = null; // Keep this as Connection
+            private channelModel: ChannelModel | null = null;
+            public channels        : Map<string, QueueChannel> = new Map();
             public consumers       : Map<string, any> = new Map();
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -62,7 +64,8 @@
             async connect() {
                   const uri = `amqp://${this.config.username}:${this.config.password}@${this.config.host}:${this.config.port}`;                  
                   try {
-                        this.conn = await amqplib.connect(uri);
+                        this.channelModel = await amqplib.connect(uri); // Assign the ChannelModel
+                        this.conn = this.channelModel.connection; 
                         app.log(`Queue [${this.name}] connected`, 'success');
                   } catch (err) {
                         app.log(`Queue [${this.name}] failed to connect`, 'error');
@@ -74,14 +77,15 @@
             //|| Get Channel
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            async getChannel(name: string): Promise<Channel | undefined> {
+            async getChannel(name: string): Promise<QueueChannel | undefined> {
                   if (this.channels.has(name)) return this.channels.get(name);
                   if (this.conn === null) {
                         app.log(`Queue [${this.name}] failed to connect`, 'error');
                         return;
                   }
+                  if (this.channelModel === null) return;
                   const channel = {
-                        'channel' : await this.conn!.createChannel(),
+                        'channel' :  await this.channelModel.createChannel(), // Use channelModel
                         'queues'  : []
                   }
                   this.channels.set(name, channel);
@@ -180,10 +184,13 @@
             async close() {
                   for (const [name, channelObj] of this.channels.entries()) {
                         await channelObj.channel.close();
-                        app.log(`Queue [${this.name}] channel [${name}] closed`, 'info');
-                  }            
-                  await this.conn?.close();
-                  app.log(`Queue [${this.name}] conn closed`, 'info');
+                        app.log(`Queue [<span class="math-inline">\{this\.name\}\] channel \[</span>{name}] closed`, 'info');
+                    }
+                    if (this.channelModel === null) return;
+                    await this.channelModel.close();
+                    app.log(`Queue [${this.name}] conn closed`, 'info');
+                    this.conn             = null; 
+                    this.channelModel     = null;
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

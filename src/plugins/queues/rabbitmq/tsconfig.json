@@ -4,9 +4,6 @@
          "module": "ESNext",
          "moduleResolution": "node",
          "baseUrl": ".",
-         "paths": {
-            "~/*": ["../../src/*"]
-         },
          "esModuleInterop": true,
          "moduleDetection": "force",
          "strict": true,
