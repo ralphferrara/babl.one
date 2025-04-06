@@ -24,5 +24,20 @@ It provides the runtime shell and system initializer — everything else is a pa
 
 ```bash
 npm create babl-one myTestApp
-or 
-npm install @babl.one/core
+```
+
+## Available Plugins 
+
+
+### @babl.one/logging-pretty
+A human-readable and customizable logging utility for babl.one projects, providing enhanced output for development and debugging.
+
+### @babl.one/queue-rabbitmq
+A `RabbitMQ` queue plugin for the babl.one framework, offering robust and scalable message queuing capabilities.
+
+### @babl.one/queue-consumers 
+A routing mechanism for queue message consumers within the babl.one framework, simplifying the mapping of messages to handler functions.
+
+
+---
+
