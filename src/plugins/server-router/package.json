@@ -1,0 +1,37 @@
+{
+   "name": "@babl.one/server-router",
+   "version": "0.0.2",
+   "description": "Handles Websocket and HTTP routing",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js"
+      }
+   },
+   "files": [
+      "dist",
+      "interfaces",
+      "classes",
+      "template.cjs",
+      "template"
+   ],
+   "scripts": {
+      "dev": "tsx index.ts",
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
+      "release": "node release.mjs",
+      "postinstall": "node template.cjs"
+   },
+   "devDependencies": {
+      "@types/node": "^22.14.0",
+      "@types/ws": "^8.18.1",
+      "tsup": "^8.4.0",
+      "tsx": "^4.19.3",
+      "typescript": "^5.3.0"
+   },
+   "dependencies": {
+      "cookie": "^1.0.2",
+      "ws": "^8.18.1"
+   }
+}
