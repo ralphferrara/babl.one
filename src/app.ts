@@ -82,7 +82,20 @@
       app.route = (route : string, chirp: any) => {
             app.log(`Request for routing (Route : ${ chirp.data('route') } ), but router is not configured`, 'error');
       };
-            
+
+      //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Senders
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      app.send = (name: string, seqi: any) => {
+            app.log(`app.send :: @babl.one/sender is not been installed`, 'error');
+            return seqi;
+      }
+      
+      app.registerSender = (name: string, sender: any) => {
+            app.log(`app.registerSender : @babl.one/sender is not been installed`, 'error');
+      }
+
       //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Loads the list of plugins from the plugins directory
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/

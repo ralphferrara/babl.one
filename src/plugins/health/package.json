@@ -1,27 +1,28 @@
 {
-      "name": "@babl.one/health",
-      "version": "0.0.1",
-      "description": "Health monitoring plugin for babl.one",
-      "type": "module",
-      "main": "dist/index.js",
-      "types": "dist/index.d.ts",
-      "exports": {
-            ".": {
-                  "import": "./dist/index.js"
-            }
-      },
-      "files": [
-            "dist",
-            "template",
-            "template.cjs"
-      ],
-      "scripts": {
-            "dev": "tsx index.ts",
-		"build": "npx tsup ./index.ts --target es2022 --format esm --dts --out-dir dist"
-      },
-      "devDependencies": {
-            "tsup": "^8.4.0",
-            "tsx": "^4.19.3",
-            "typescript": "^5.8.3"
+   "name": "@babl.one/health",
+   "version": "0.0.2",
+   "description": "Health monitoring plugin for babl.one",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js"
       }
+   },
+   "files": [
+      "dist",
+      "template",
+      "template.cjs"
+   ],
+   "scripts": {
+      "dev": "tsx index.ts",
+      "build": "npx tsup ./index.ts --target es2022 --format esm --dts --out-dir dist",
+      "postinstall": "node template.cjs"
+   },
+   "devDependencies": {
+      "tsup": "^8.4.0",
+      "tsx": "^4.19.3",
+      "typescript": "^5.8.3"
+   }
 }

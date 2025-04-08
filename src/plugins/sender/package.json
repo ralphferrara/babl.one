@@ -1,7 +1,7 @@
 {
-   "name": "@babl.one/server-router",
-   "version": "0.0.3",
-   "description": "Handles Websocket and HTTP routing",
+   "name": "@babl.one/sender",
+   "version": "0.0.10",
+   "description": "Wrapper to add APIs for sending emails and text",
    "type": "module",
    "main": "dist/index.js",
    "types": "dist/index.d.ts",
@@ -12,10 +12,9 @@
    },
    "files": [
       "dist",
-      "interfaces",
-      "classes",
       "template.cjs",
-      "template"
+      "template",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",
@@ -24,14 +23,9 @@
       "postinstall": "node template.cjs"
    },
    "devDependencies": {
-      "@types/node": "^22.14.0",
-      "@types/ws": "^8.18.1",
       "tsup": "^8.4.0",
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "dependencies": {
-      "cookie": "^1.0.2",
-      "ws": "^8.18.1"
-   }
+   "dependencies": {}
 }

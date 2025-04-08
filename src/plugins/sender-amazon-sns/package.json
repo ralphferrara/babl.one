@@ -1,7 +1,7 @@
 {
-   "name": "@babl.one/server-router",
-   "version": "0.0.3",
-   "description": "Handles Websocket and HTTP routing",
+   "name": "@babl.one/sender-amazon-sns",
+   "version": "0.0.5",
+   "description": "Wrapper for Amazon SES text messaging (requires @babl.one/sender)",
    "type": "module",
    "main": "dist/index.js",
    "types": "dist/index.d.ts",
@@ -11,27 +11,21 @@
       }
    },
    "files": [
-      "dist",
-      "interfaces",
-      "classes",
-      "template.cjs",
-      "template"
+      "dist"
    ],
    "scripts": {
       "dev": "tsx index.ts",
       "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
-      "release": "node release.mjs",
-      "postinstall": "node template.cjs"
+      "release": "node release.mjs"
    },
    "devDependencies": {
-      "@types/node": "^22.14.0",
-      "@types/ws": "^8.18.1",
+      "@aws-sdk/types": "^3.775.0",
       "tsup": "^8.4.0",
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "cookie": "^1.0.2",
-      "ws": "^8.18.1"
+      "@aws-sdk/client-sns": "^3.782.0",
+      "@babl.one/sender": "^0.0.10"
    }
 }
