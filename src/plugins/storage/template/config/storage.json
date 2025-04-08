@@ -1,0 +1,26 @@
+{
+      "AWS": {
+            "service"             : "local",
+            "bucket"              : "local-bucket",
+            "region"              : "us-east-1",
+            "accessKeyId"         : "your-access-key-id",
+            "secretAccessKey"     : "your-secret-access-key"
+      },      
+
+      "GCP": {
+        "service"             : "local",
+        "bucket"              : "local-bucket",
+        "region"              : "us-east-1",
+        "accessKeyId"         : "your-access-key-id",
+        "secretAccessKey"     : "your-secret-access-key"
+      },
+
+      "AZURE": {
+        "service"             : "cloud",
+        "bucket"              : "cloud-bucket",
+        "region"              : "us-west-1",
+        "accessKeyId"         : "your-access-key-id",
+        "secretAccessKey"     : "your-secret-access-key"
+      }
+
+}
