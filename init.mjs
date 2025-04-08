@@ -23,10 +23,7 @@
             const folders = [
                   'src',
                   'src/interfaces',
-                  'src/routes',
-                  'src/routes',
                   'src/plugins',
-                  'src/consumers',
                   'src/tests',
                   'config',
             ];

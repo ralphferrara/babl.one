@@ -28,13 +28,14 @@ for (const dir of pluginDirs) {
       const outDir       = path.join(DIST_ROOT, relativePath);
       console.log(`📦 Building plugin in: ${dir}`);
 
-      await build({
-            entry: [path.join(dir, 'index.ts')],
-            outDir,
-            format: ['esm'],
-            target: 'es2022',
-            splitting: false,
-            clean: true,
-            dts: false
-      });
+      try {
+            execSync(
+                `npx tsup ${path.join(dir, 'index.ts')} --target es2022 --format esm --dts --out-dir ${outDir}`,
+                { stdio: 'inherit' }
+            );
+            console.log(`✅ Plugin built successfully in: ${outDir}`);
+        } catch (error) {
+            console.error(`❌ Failed to build plugin in: ${outDir}`);
+            console.error(error);
+        }
 }
