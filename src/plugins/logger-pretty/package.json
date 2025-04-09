@@ -1,6 +1,6 @@
 {
-   "name": "@babl.one/logging-pretty",
-   "version": "1.1.19",
+   "name": "@babl.one/logger-pretty",
+   "version": "1.1.23",
    "description": "Pretty console logger plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
@@ -11,7 +11,8 @@
       }
    },
    "files": [
-      "dist"
+      "dist",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",

@@ -9,8 +9,8 @@
       
       export default interface StorageConfig {
             service           : string;
-            bucket            : string;
-            region            : string;
-            accessKeyId       : string;
-            secretAccessKey   : string;
+            region?           : string;
+            account?          : string;
+            apiKey?           : string;
+            privateKey        : string;
       }

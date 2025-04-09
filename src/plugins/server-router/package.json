@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-router",
-   "version": "0.0.3",
+   "version": "0.0.4",
    "description": "Handles Websocket and HTTP routing",
    "type": "module",
    "main": "dist/index.js",
@@ -15,7 +15,8 @@
       "interfaces",
       "classes",
       "template.cjs",
-      "template"
+      "template",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",

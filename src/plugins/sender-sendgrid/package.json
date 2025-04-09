@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-sendgrid",
-   "version": "0.0.3",
+   "version": "0.0.4",
    "description": "Wrapper for SendGrid send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",

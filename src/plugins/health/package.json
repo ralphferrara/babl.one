@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/health",
-   "version": "0.0.2",
+   "version": "0.0.6",
    "description": "Health monitoring plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
@@ -13,11 +13,13 @@
    "files": [
       "dist",
       "template",
-      "template.cjs"
+      "template.cjs",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",
       "build": "npx tsup ./index.ts --target es2022 --format esm --dts --out-dir dist",
+      "release": "node release.mjs",
       "postinstall": "node template.cjs"
    },
    "devDependencies": {

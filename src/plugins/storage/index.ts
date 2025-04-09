@@ -15,7 +15,7 @@
 
       import StorageAPI                               from './interfaces/storage.api';
       import StorageConfig                            from './interfaces/storage.config';
-      import StorageQueueItem                         from './interfaces/storage.queue.item';
+      import StorageFile                              from './interfaces/storage.file';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
@@ -23,7 +23,7 @@
 
       export { default as StorageAPI }                from './interfaces/storage.api';
       export { default as StorageConfig }             from './interfaces/storage.config';
-      export { default as StorageQueueItem }          from './interfaces/storage.queue.item';
+      export { default as StorageFile }               from './interfaces/storage.file';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
@@ -53,16 +53,42 @@
                   const instances         = new Map<string, StorageConfig>();
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| processLocal - Handle the reading of local files for write
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  const processLocal = async (files: StorageFile[]): Promise<StorageFile[]> => {
+                        if (!files || files.length === 0) return files;
+                        await Promise.all(
+                              files.map(async (file) => {
+                                    if (file.localPath && file.action === 'WRITE') {
+                                          const blob = await app.path(file.localPath).read();
+                                          if (blob) {
+                                                file.blob = Buffer.from(blob);
+                                                file.size = Buffer.byteLength(file.blob);
+                                                file.status = 'READY';
+                                          } else {
+                                                file.status = 'FAILED';
+                                                app.log(`Storage ${file.localPath} not found`, 'break');
+                                          }
+                                    } else {
+                                          file.status = 'READY';
+                                    }
+                              })
+                        );
+                        return files;
+                  };
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Assign tie in 
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.store = async (name: string, seqi: StorageQueueItem): Promise<StorageQueueItem> => {
+                  app.process = async (name: string, container : string, files : StorageFile[]): Promise<StorageFile[]> => {
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| Did we configure the storage service?
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         if (!instances.has(name)) {
                               throw new Error(`Storage ${name} not registered in storage.json`);
-                              return seqi;
+                              return files;
                         }
                         const conf = instances.get(name);
                         if (!conf) return app.log(`Storage ${name} not registered in storage.json`);
@@ -70,7 +96,7 @@
                         //|| Did we register the plugin?
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         if (!storageServices.has(conf?.service)) {
-                              throw new Error(`Storage ${conf?.service} not imported`);
+                              throw new Error(`Storage ${conf?.service} not registered/imported`);
                         }
                         const api = storageServices.get(conf?.service);
                         if (!api) return app.log(`Storage ${conf?.service} not imported`);
@@ -78,7 +104,29 @@
                         //|| Lets init and store the file
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         const apiObject = new api(conf);
-                        return await apiObject.store(seqi)
+                        await apiObject.init();
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                        //|| Process all local file reading
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                        files = await processLocal(files);
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                        //|| Process all actions
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                        await Promise.all(
+                              files.map(async (file) => {
+                                    switch (file.action) {
+                                          case 'READ'       : file = await apiObject.read(container, file); break;
+                                          case 'WRITE'      : file = await apiObject.write(container, file); break;
+                                          case 'DELETE'     : file = await apiObject.delete(container, file); break;
+                                          case 'RENAME'     : file = await apiObject.rename(container, file); break;
+                                          default           : app.log(`Storage ${file.action} not supported`, 'break');
+                                    }
+                              })
+                        );
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                        //|| Process all local files 
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                        return files;
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

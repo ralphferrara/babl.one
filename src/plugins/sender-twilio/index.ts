@@ -8,7 +8,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       import { SenderAPI, SenderConfig, SMSEmailQueueItem }             from '@babl.one/sender';
-      import twilio                                                     from 'twilio';
+      import { Twilio }                                                 from 'twilio';
 
       //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Interfaces
@@ -32,7 +32,7 @@
             constructor(config : SenderConfig) {
                   app.log("SenderSNS :: config()", 'info');
                   try { 
-                        this.client = twilio(config.account, config.privateKey);
+                        this.client = new Twilio(config.account, config.privateKey);
                         this.config = config;
                         this.client.api.accounts(config.account || "" ).fetch();
                   } catch (error) {

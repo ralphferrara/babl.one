@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-http",
-   "version": "0.0.4",
+   "version": "0.0.10",
    "description": "Handles HTTP/s connections",
    "type": "module",
    "main": "dist/index.js",
@@ -13,7 +13,8 @@
    "files": [
       "dist",
       "template.cjs",
-      "template"
+      "template",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",

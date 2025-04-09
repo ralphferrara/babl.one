@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql",
-   "version": "0.0.2",
+   "version": "0.0.7",
    "description": "Database Wrapper for MySQL",
    "type": "module",
    "main": "dist/index.js",
@@ -13,7 +13,8 @@
    "files": [
       "dist",
       "template.cjs",
-      "template"
+      "template",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",

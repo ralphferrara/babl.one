@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-twilio",
-   "version": "0.0.4",
+   "version": "0.0.6",
    "description": "Wrapper for Twilio to send text messages requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",

@@ -7,6 +7,16 @@
       //|| Interfaces 
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+      import StorageFile                         from './storage.file';
+
+      //*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| StorageAPI
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
       export default interface StorageAPI {
-            store(seqi: StorageQueueItem): Promise<StorageQueueItem>;
+            init(): Promise<void>;
+            read(container : string, file : StorageFile): Promise<StorageFile>;
+            write(container : string, file : StorageFile): Promise<StorageFile>;
+            rename(container : string, file : StorageFile): Promise<StorageFile>;
+            delete(container : string, file : StorageFile): Promise<StorageFile>;
       }

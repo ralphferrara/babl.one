@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mongo",
-   "version": "0.0.3",
+   "version": "0.0.8",
    "description": "Database Wrapper for MongoDB",
    "type": "module",
    "main": "dist/index.js",
@@ -13,7 +13,8 @@
    "files": [
       "dist",
       "template.cjs",
-      "template"
+      "template",
+      "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",
