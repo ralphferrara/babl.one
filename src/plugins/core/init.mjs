@@ -47,6 +47,8 @@
             console.log('Installing...');
             const pkgs = [
                   '@babl.one/core',
+                  '@babl.one/logger-pretty',
+                  'cross-env',
                   'tsx'
             ];
             const { execSync } = await import('child_process');

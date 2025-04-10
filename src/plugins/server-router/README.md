@@ -35,7 +35,9 @@ class ExampleHandler {
 
 - `path`: The path for the route.
 - `method`: The HTTP method (e.g., GET, POST).
-- `level`: The security level for the route (used for authorization).
+- `level`: The user security level required for the route (0 = PUBLIC, 100 = MAX).
+
+      Levels = 0 | 1 | 2 | 3 | 5 | 10 | 20 | 30 | 40 | 50 | 60 | 70 | 80 | 90 | 100
 
 ## API
 
@@ -45,7 +47,7 @@ class ExampleHandler {
 
 ## Example Usage
 
-Once the plugin is configured, routes can be handled like this:
+Once the plugin is configured, routes will be automatically handled by the server-http plugin, passing the chirp component as such
 
 ```ts
 app.route('/example', chirp);

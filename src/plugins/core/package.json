@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.1",
+   "version": "3.2.9",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -10,18 +10,13 @@
          "import": "./dist/index.js"
       }
    },
-   "bin": {
-      "init": "./init.mjs"
-   },
    "files": [
       "dist"
    ],
    "scripts": {
       "dev": "cross-env NODE_ENV=development tsx src/index.ts",
-      "build": "npm run build:plugins && tsup src/index.ts --target es2022 --format esm --dts --out-dir dist",
-      "build:plugins": "tsx build.plugins.ts",
-      "release": "node release.mjs",
-      "test": "vitest run --coverage"
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
+      "release": "node release.mjs"
    },
    "devDependencies": {
       "@types/node": "^22.13.14",

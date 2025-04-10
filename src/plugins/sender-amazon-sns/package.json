@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-amazon-sns",
-   "version": "0.0.6",
+   "version": "0.0.7",
    "description": "Wrapper for Amazon SES text messaging (requires @babl.one/sender)",
    "type": "module",
    "main": "dist/index.js",

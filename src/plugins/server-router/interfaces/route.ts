@@ -3,7 +3,7 @@
 //|| Interfaces for Routes
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-export default interface Route {
+export default interface RouteInterface {
       name              : string;
       path              : string;
       method            : string;
