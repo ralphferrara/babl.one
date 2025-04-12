@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/logger-pretty",
-   "version": "1.1.27",
+   "version": "1.1.28",
    "description": "Pretty console logger plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
@@ -19,13 +19,13 @@
       "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
       "release": "node release.mjs"
    },
-   "dependencies": {},
+   "dependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
+   },
    "devDependencies": {
       "tsup": "^8.4.0",
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "peerDependencies": {
-      "@babl.one/core": "@babl.one/core@latest"
-   }
+   "peerDependencies": {}
 }

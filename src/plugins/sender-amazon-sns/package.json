@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-amazon-sns",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Wrapper for Amazon SES text messaging (requires @babl.one/sender)",
    "type": "module",
    "main": "dist/index.js",
@@ -26,9 +26,8 @@
    },
    "dependencies": {
       "@aws-sdk/client-sns": "^3.782.0",
-      "@babl.one/sender": "^0.0.10"
-   },
-   "peerDependencies": {
+      "@babl.one/sender": "^0.0.10",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

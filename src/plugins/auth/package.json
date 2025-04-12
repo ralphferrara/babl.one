@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/auth",
-   "version": "0.0.10",
+   "version": "0.0.12",
    "description": "Handle the Authentication and Authorization of the Babl.one system",
    "type": "module",
    "main": "./dist/index.js",
@@ -25,11 +25,12 @@
       "postinstall": "node template.cjs && node init.cjs"
    },
    "dependencies": {
+      "@babl.one/core": "latest",
       "@babl.one/jwt": "latest",
       "@babl.one/server-http": "latest",
       "@babl.one/server-router": "latest",
       "@babl.one/twofactor": "latest",
-      "@babl.one/validate": "latest",
+      "@babl.one/validate": "latest",     
       "bcrypt": "latest"
    },
    "devDependencies": {
@@ -43,8 +44,5 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0",
       "vitest": "^3.0.9"
-   },
-   "peerDependencies": {
-      "@babl.one/core": "@babl.one/core@latest"
    }
 }

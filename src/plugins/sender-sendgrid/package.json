@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-sendgrid",
-   "version": "0.0.5",
+   "version": "0.0.6",
    "description": "Wrapper for SendGrid send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
    },
    "dependencies": {
       "@babl.one/sender": "latest",
-      "@sendgrid/mail": "^8.1.5"
-   },
-   "peerDependencies": {
+      "@sendgrid/mail": "^8.1.5",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

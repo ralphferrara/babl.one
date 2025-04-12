@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-gcp",
-   "version": "0.0.8",
+   "version": "0.0.9",
    "description": "Wrapper for Google Cloud Storage blob storage",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
    },
    "dependencies": {
       "@babl.one/storage": "latest",
-      "@google-cloud/storage": "^7.16.0"
-   },
-   "peerDependencies": {
+      "@google-cloud/storage": "^7.16.0",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-amazon-ses",
-   "version": "0.0.14",
+   "version": "0.0.15",
    "description": "Wrapper for the AWS SES client to send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",
@@ -26,9 +26,8 @@
    "dependencies": {
       "@aws-sdk/client-ses": "^3.782.0",
       "@aws-sdk/types": "^3.775.0",
-      "@babl.one/sender": "latest"
-   },
-   "peerDependencies": {
+      "@babl.one/sender": "latest",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

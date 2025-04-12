@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-azure",
-   "version": "0.0.8",
+   "version": "0.0.9",
    "description": "Wrapper for Microsoft Azure blob storage",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
    },
    "dependencies": {
       "@azure/storage-blob": "^12.27.0",
-      "@babl.one/storage": "latest"
-   },
-   "peerDependencies": {
+      "@babl.one/storage": "latest",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

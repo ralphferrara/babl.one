@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-sockets",
-   "version": "0.0.7",
+   "version": "0.0.8",
    "description": "Handles Websocket connections",
    "type": "module",
    "main": "dist/index.js",
@@ -31,9 +31,8 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/server-router": "latest"
-   },
-   "peerDependencies": {
+      "@babl.one/server-router": "latest",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

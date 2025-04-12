@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/queue-rabbitmq",
-   "version": "1.1.23",
+   "version": "1.1.24",
    "description": "RabbitMQ queue plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
@@ -27,9 +27,8 @@
    },
    "dependencies": {
       "@babl.one/queue-consumers": "latest",
-      "amqplib": "^0.10.7"
-   },
-   "peerDependencies": {
+      "amqplib": "^0.10.7",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

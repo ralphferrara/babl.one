@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-amazon-s3",
-   "version": "0.0.3",
+   "version": "0.0.4",
    "description": "Wrapper for AWS S3 blob storage",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
    },
    "dependencies": {
       "@aws-sdk/client-s3": "^3.782.0",
-      "@babl.one/storage": "latest"
-   },
-   "peerDependencies": {
+      "@babl.one/storage": "latest",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

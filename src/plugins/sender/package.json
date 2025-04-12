@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender",
-   "version": "0.0.14",
+   "version": "0.0.15",
    "description": "Wrapper to add APIs for sending emails and text",
    "type": "module",
    "main": "dist/index.js",
@@ -27,8 +27,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "dependencies": {},
-   "peerDependencies": {
+   "dependencies": {
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

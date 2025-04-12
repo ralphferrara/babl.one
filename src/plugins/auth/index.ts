@@ -36,9 +36,11 @@
       //|| Export Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export { default as AuthDTO }               from './interfaces/auth.dto';
-      export { default as AuthJWT }               from './interfaces/auth.jwt';
-
+      export { default as AuthDTO }                   from './interfaces/auth.dto';
+      export { default as AuthJWT }                   from './interfaces/auth.jwt';
+      export { default as AuthAbstract }              from './interfaces/abstract';
+      export { IdentifierType as IdentifierType }     from './interfaces/types';
+      
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Export Classes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/

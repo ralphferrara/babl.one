@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-sendinblue",
-   "version": "0.0.6",
+   "version": "0.0.7",
    "description": "Wrapper for SendInBlue send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
    },
    "dependencies": {
       "@babl.one/sender": "latest",
-      "node-fetch": "^3.3.2"
-   },
-   "peerDependencies": {
+      "node-fetch": "^3.3.2",
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }

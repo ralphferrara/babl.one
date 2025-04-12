@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage",
-   "version": "0.0.6",
+   "version": "0.0.7",
    "description": "Wrapper to add cloud and local storage",
    "type": "module",
    "main": "dist/index.js",
@@ -27,8 +27,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "dependencies": {},
-   "peerDependencies": {
+   "dependencies": {
       "@babl.one/core": "@babl.one/core@latest"
-   }
+   },
+   "peerDependencies": {}
 }
