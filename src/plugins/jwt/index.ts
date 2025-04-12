@@ -7,13 +7,15 @@
       //|| 3rd
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import crypto                       from "crypto";
+      import { createHmac, randomBytes }        from 'crypto';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Decorators
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import Plugin                               from '../../decorators/plugin';
+      import { Plugin }                         from '@babl.one/core';
+      import { JWTStatuses }                    from './interfaces/types';
+      export { JWTStatuses as JWTStatuses}      from './interfaces/types';
      
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| JWT Header
@@ -42,7 +44,7 @@
             public header                 : JWTHeader;
             public payload                : {};
             public signature              : string;
-            public status                 : "INVALID" | "EXPIRED" | "FAILED" | "INSECURE" | "VALID" | "PENDING" | "CREATED" | "ERROR";
+            public status                 : JWTStatuses;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Constructor
@@ -56,7 +58,7 @@
                         typ         : "JWT",
                         iss         : issuedAt,
                         exp         : expirationTime,
-                        slt         : crypto.randomBytes(8).toString("hex"),
+                        slt         : randomBytes(8).toString("hex"),
                   };
                   this.payload            = {};
                   this.status             = "PENDING";
@@ -91,7 +93,7 @@
                   const header                  = Buffer.from(JSON.stringify(this.header), 'utf8').toString('base64');
                   const encodedPayload          = Buffer.from(JSON.stringify(this.payload), 'utf8').toString('base64');
                   const signatureInput          = `${header}.${encodedPayload}`;
-                  this.signature                = crypto.createHmac("blake2b512", secret).update(signatureInput).digest("base64");
+                  this.signature                = createHmac("blake2b512", secret).update(signatureInput).digest("base64");
                   this.status                   = "CREATED";
                   return encodeURIComponent(`${signatureInput}.${this.signature}`);
             }
@@ -166,7 +168,7 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const signatureInput                = `${header}.${payload}`;
-                  const expectedSignature             = crypto.createHmac("blake2b512", secret).update(signatureInput).digest("base64").replace(/=/g, ""); 
+                  const expectedSignature             = createHmac("blake2b512", secret).update(signatureInput).digest("base64").replace(/=/g, ""); 
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Check the Signature

@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql",
-   "version": "0.0.8",
+   "version": "0.0.11",
    "description": "Database Wrapper for MySQL",
    "type": "module",
    "main": "dist/index.js",
@@ -29,6 +29,7 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
+      "@babl.one/core": "^3.2.10",
       "mysql2": "^3.14.0"
    }
 }

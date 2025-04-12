@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.9",
+   "version": "3.2.12",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -11,7 +11,9 @@
       }
    },
    "files": [
-      "dist"
+      "dist",
+      "registerErrors.mjs",
+      "README.md"
    ],
    "scripts": {
       "dev": "cross-env NODE_ENV=development tsx src/index.ts",

@@ -1,10 +1,10 @@
 // tests/path.test.ts
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as path from 'path';
-import * as fs from 'fs/promises';
-import * as fsConst from 'fs';
-import Path from '~/path';
+import { describe, it, expect, vi, beforeEach }                   from 'vitest';
+import * as path                                                  from 'path';
+import * as fs                                                    from 'fs/promises';
+import * as fsConst                                               from 'fs';
+import Path                                                       from '../../classes/path';
 
 vi.mock('fs/promises');
 

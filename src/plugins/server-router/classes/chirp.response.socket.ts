@@ -56,7 +56,21 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             
             respond(responseData : ResponseDataPayload) : void {
-                  this.response.send(JSON.stringify( responseData ));
+                  const newResponse =  responseData;
+                  if (this.cookiesSet) {
+                        const cookies = this.cookiesSet.map(cookie => {
+                              let cookieOptions = "";
+                              cookieOptions += (cookie.options.path)          ? `; Path=${cookie.options.path}` : '';
+                              cookieOptions += (cookie.options.maxAge)        ? `; Max-Age=${cookie.options.maxAge}` : '';
+                              cookieOptions += (cookie.options.httpOnly)      ? '; HttpOnly' : '';
+                              cookieOptions += (cookie.options.secure)        ? '; Secure' : '';
+                              cookieOptions += (cookie.options.sameSite)      ? `; SameSite=${cookie.options.sameSite}` : '';                          
+                              const cookieString = `${cookie.name}=${encodeURIComponent(cookie.value)}${cookieOptions}`;
+                              return cookieString;
+                        });
+                        newResponse.cookies = cookies;
+                  }                  
+                  this.response.send(JSON.stringify( newResponse ));
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

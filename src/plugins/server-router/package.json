@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-router",
-   "version": "0.0.9",
+   "version": "0.0.17",
    "description": "Handles Websocket and HTTP routing",
    "type": "module",
    "main": "dist/index.js",

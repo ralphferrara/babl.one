@@ -1,8 +1,8 @@
 import { describe, it, beforeEach, afterAll, expect, vi }   from 'vitest';
-import FileWatcher, { FileWatcherObject }                   from '../../plugins/core/classes/file.watcher';
-import fs from 'fs/promises';
-import path from 'path';
-import chokidar from 'chokidar';
+import FileWatcher, { FileWatcherObject }                   from "../../classes/file.watcher";
+import fs                                                   from 'fs/promises';
+import path                                                 from 'path';
+import chokidar                                             from 'chokidar';
 
       // Mocks
       vi.mock('fs/promises');

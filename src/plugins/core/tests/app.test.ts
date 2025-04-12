@@ -1,11 +1,11 @@
-import app from '../app';
-import { describe, it, beforeAll, afterAll, expect, vi } from 'vitest';
+import app                                                        from '../index';
+import { describe, it, beforeAll, afterAll, expect, vi }          from 'vitest';
 
 vi.mock('child_process', () => ({
       spawn: vi.fn(() => ({
             on: vi.fn(),
             stdout: { on: vi.fn() },
-            stderr: { on: vi.fn() }
+            stderr: { on: vi.fn() } 
       }))
 }));
 

@@ -48,6 +48,26 @@
             public currentStep  : number;
             public route        : Route | null;
             public ttl          : ChirpTTL;
+            public updatedAuth   : {
+                  authJWT : string | null,
+                  session : string | null
+            } = {
+                  authJWT : "",
+                  session : ""
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Process
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            private authorized   : {
+                  site        : string,
+                  id          : number,
+                  level       : number,
+                  session     : string | null,
+                  verified    : boolean,
+                  message     : string
+            };
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Process
@@ -62,6 +82,14 @@
                   this.ttl          = new ChirpTTL(request.url || "");
                   this.request      = request;
                   this.response     = response;
+                  this.authorized   = {
+                        site        : "",
+                        id          : 0,
+                        level       : 0,
+                        session     : null,
+                        verified    : false,
+                        message     : ""
+                  };
             }
                         
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -70,6 +98,45 @@
 
             step(step : Function):void {
                   this.steps.push(step);
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Set Authorization
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            setAuthorization(site : string, id : number, level : number, session : string | null, verified : boolean, message : string) : void {
+                  this.authorized = {
+                        site        : site,
+                        id          : id,
+                        level       : level,
+                        session     : session,
+                        verified    : verified,
+                        message     : message
+                  };
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Authorization Getter
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            authorization = {
+                  site        : () : string => this.authorized.site,
+                  id          : () : number => this.authorized.id,
+                  level       : () : number => this.authorized.level,
+                  verified    : () : boolean => this.authorized.verified,
+                  message     : () : string  => this.authorized.message,                  
+                  session     : () : string | null => this.authorized.session,
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Update Authorization
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            updateAuth(authJWT : string | null, session: string | null) : void {
+                  this.updatedAuth = {
+                        authJWT : authJWT, 
+                        session : session
+                  };
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -139,6 +206,16 @@
            
             respond(responseData : ResponseDataPayload) : any {                  
                   if (this.responded) return;
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Update the Authorization JWT and Session
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  if (this.updatedAuth.authJWT !== '' || this.updatedAuth.session !== '') { 
+                        this.response.setCookie('authJWT', this.updatedAuth.authJWT || '', { path: '/', maxAge: 60 * 60 * 24 * 7, httpOnly: true });
+                        this.response.setCookie('session', this.updatedAuth.session || '', { path: '/', maxAge: 60 * 60 * 24 * 7, httpOnly: true });
+                  }
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Response
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   this.responded  = true;
                   this.ttl.step("Chirp Response : " + responseData.status);
                   app.log("Chirp : respond("+responseData.status+")", 'info');

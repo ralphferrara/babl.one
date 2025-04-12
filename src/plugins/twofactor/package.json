@@ -1,0 +1,32 @@
+{
+   "name": "@babl.one/twofactor",
+   "version": "0.0.6",
+   "description": "Wrapper for TwoFactor Authentication",
+   "type": "module",
+   "main": "dist/index.js",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js"
+      }
+   },
+   "files": [
+      "dist",
+      "registerErrors.mjs",
+      "README.md"
+   ],
+   "scripts": {
+      "dev": "tsx index.ts",
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
+      "release": "node release.mjs"
+   },
+   "devDependencies": {
+      "tsup": "^8.4.0",
+      "tsx": "^4.19.3",
+      "typescript": "^5.3.0"
+   },
+   "dependencies": {
+      "@babl.one/core": "latest",
+      "@babl.one/jwt": "latest"
+   }
+}

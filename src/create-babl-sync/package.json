@@ -1,0 +1,17 @@
+{
+      "name": "create-babl-sync",
+      "version": "0.0.1",
+      "description": "A centeral data sync for multiple containers and micro-servers",
+      "type": "module",
+      "bin": {
+         "create-babl-sync": "./create.mjs"
+      },
+      "scripts": {
+         "release": "node release.mjs"
+      },
+      "files": [
+         "create.mjs",
+         "template"
+      ],
+      "dependencies": {}
+   }
