@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/auth",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Handle the Authentication and Authorization of the Babl.one system",
    "type": "module",
    "main": "./dist/index.js",
