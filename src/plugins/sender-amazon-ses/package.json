@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-amazon-ses",
-   "version": "0.0.12",
+   "version": "0.0.13",
    "description": "Wrapper for the AWS SES client to send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",
