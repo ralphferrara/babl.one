@@ -23,14 +23,14 @@
       "postinstall": "node template.cjs"
    },
    "devDependencies": {
+      "@babl.one/server-router": "latest",
       "@types/node": "^22.14.0",
       "tsup": "^8.4.0",
       "tsx": "^4.19.3",
-      "typescript": "^5.3.0",
-      "@babl.one/server-router": "latest"
+      "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "latest",
+      "@babl.one/core": "^3.2.12",
       "@babl.one/server-router": "latest"
    }
 }

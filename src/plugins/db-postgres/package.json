@@ -29,6 +29,7 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
+      "@babl.one/core": "^3.2.12",
       "pg": "^8.14.1"
    }
 }

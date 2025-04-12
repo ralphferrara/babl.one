@@ -30,5 +30,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0",
       "vitest": "^3.0.9"
+   },
+   "dependencies": {
+      "@babl.one/core": "^3.2.12"
    }
 }

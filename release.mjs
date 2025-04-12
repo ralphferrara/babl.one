@@ -75,24 +75,20 @@ try {
     writeFileSync('package.json', JSON.stringify(pkg, null, 3));
     log(`Version bumped: ${currentVersion} → ${nextVersion}`);
 
-    log('Building core + plugins...');
-    execSync('npm run build', { stdio: 'inherit' });
-
     log('Committing and pushing...');
+
+    // Git commit and push for plugins
     execSync('git add .', { stdio: 'inherit' });
     execSync(`git commit -m "release: v${nextVersion}"`, { stdio: 'inherit' });
     execSync(`git tag v${nextVersion}`, { stdio: 'inherit' });
     execSync('git push && git push --tags', { stdio: 'inherit' });
 
-    log('Publishing core to npm...');
-    execSync('npm publish --access public', { stdio: 'inherit' });
-
-    log('Publishing plugins...');
+    log('Building plugins...');
     const plugins = findPlugins('src/plugins');
     for (const dir of plugins) {
         const pluginPkg = path.join(dir, 'package.json');
         const plugin = JSON.parse(readFileSync(pluginPkg, 'utf8'));
-        
+
         // Bump plugin version
         const currentPluginVersion = plugin.version;
         const nextPluginVersion = bumpVersion(currentPluginVersion, bumpType);
@@ -100,6 +96,10 @@ try {
         writeFileSync(pluginPkg, JSON.stringify(plugin, null, 3));
 
         log(`→ ${plugin.name} (${currentPluginVersion}) → ${nextPluginVersion}`);
+
+        // Build each plugin before publishing
+        log(`Building ${plugin.name}@${nextPluginVersion}`);
+        execSync('npm run build', { cwd: dir, stdio: 'inherit' });
 
         // Only publish the plugin if the hash has changed
         if (!hasHashChanged(dir)) {

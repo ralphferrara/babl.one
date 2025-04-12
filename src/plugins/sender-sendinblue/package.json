@@ -24,6 +24,7 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
+      "@babl.one/core": "^3.2.12",
       "@babl.one/sender": "latest",
       "node-fetch": "^3.3.2"
    }

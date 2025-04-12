@@ -29,7 +29,7 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.10",
+      "@babl.one/core": "^3.2.12",
       "mysql2": "^3.14.0"
    }
 }

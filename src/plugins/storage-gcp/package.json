@@ -24,6 +24,7 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
+      "@babl.one/core": "^3.2.12",
       "@babl.one/storage": "latest",
       "@google-cloud/storage": "^7.16.0"
    }

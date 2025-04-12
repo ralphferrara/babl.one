@@ -25,6 +25,7 @@
       "typescript": "^5.8.3"
    },
    "dependencies": {
+      "@babl.one/core": "^3.2.12",
       "crypto": "^1.0.1"
    }
 }

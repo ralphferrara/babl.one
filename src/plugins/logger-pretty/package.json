@@ -19,6 +19,9 @@
       "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
       "release": "node release.mjs"
    },
+   "dependencies": {
+      "@babl.one/core": "^3.2.12"
+   },
    "devDependencies": {
       "tsup": "^8.4.0",
       "tsx": "^4.19.3",

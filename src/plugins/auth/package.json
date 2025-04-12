@@ -25,7 +25,7 @@
       "postinstall": "node template.cjs && node init.cjs"
    },
    "dependencies": {
-      "@babl.one/core": "latest",
+      "@babl.one/core": "^3.2.12",
       "@babl.one/jwt": "latest",
       "@babl.one/server-http": "latest",
       "@babl.one/server-router": "latest",
