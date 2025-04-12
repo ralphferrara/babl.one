@@ -28,7 +28,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "dependencies": {
-      "@babl.one/core": "^3.2.12"
+   "dependencies": {},
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

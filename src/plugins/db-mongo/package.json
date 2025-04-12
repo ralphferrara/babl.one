@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mongo",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Database Wrapper for MongoDB",
    "type": "module",
    "main": "dist/index.js",
@@ -29,7 +29,9 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.12",
       "mongodb": "^6.15.0"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

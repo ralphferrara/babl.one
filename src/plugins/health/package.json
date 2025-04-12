@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/health",
-   "version": "0.0.7",
+   "version": "0.0.8",
    "description": "Health monitoring plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",
@@ -27,7 +27,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.8.3"
    },
-   "dependencies": {
-      "@babl.one/core": "^3.2.12"
+   "dependencies": {},
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

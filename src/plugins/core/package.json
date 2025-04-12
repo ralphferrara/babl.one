@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.12",
+   "version": "3.2.13",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -31,7 +31,8 @@
       "typescript": "^5.3.0",
       "vitest": "^3.0.9"
    },
-   "dependencies": {
-      "@babl.one/core": "^3.2.12"
+   "dependencies": {},
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

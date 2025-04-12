@@ -26,8 +26,10 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.12",
       "@babl.one/queue-consumers": "latest",
       "amqplib": "^0.10.7"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

@@ -24,8 +24,10 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.12",
       "@babl.one/sender": "latest",
       "@sendgrid/mail": "^8.1.5"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

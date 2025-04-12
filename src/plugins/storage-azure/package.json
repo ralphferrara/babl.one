@@ -25,7 +25,9 @@
    },
    "dependencies": {
       "@azure/storage-blob": "^12.27.0",
-      "@babl.one/core": "^3.2.12",
       "@babl.one/storage": "latest"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

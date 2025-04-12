@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-http",
-   "version": "0.0.19",
+   "version": "0.0.21",
    "description": "Handles HTTP/s connections",
    "type": "module",
    "main": "dist/index.js",
@@ -30,7 +30,9 @@
       "typescript": "^5.3.0"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.12",
       "@babl.one/server-router": "latest"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }

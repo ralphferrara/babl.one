@@ -25,7 +25,9 @@
    },
    "dependencies": {
       "@aws-sdk/client-s3": "^3.782.0",
-      "@babl.one/core": "^3.2.12",
       "@babl.one/storage": "latest"
+   },
+   "peerDependencies": {
+      "@babl.one/core": "@babl.one/core@latest"
    }
 }
