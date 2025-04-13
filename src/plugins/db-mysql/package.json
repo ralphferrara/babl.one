@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql",
-   "version": "0.0.43",
+   "version": "0.0.49",
    "description": "Database Wrapper for MySQL",
    "type": "module",
    "main": "dist/index.js",

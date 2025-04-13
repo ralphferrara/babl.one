@@ -40,6 +40,7 @@
             public status           : 'INIT' | 'OK' | 'FAIL' | 'CLOSED';
             public config           : any;
             public db               : Kysely<any> | null;
+            public dialect          : MysqlDialect | null;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Constructor
@@ -51,6 +52,7 @@
                   this.config             = config;
                   this.pool               = null;
                   this.db                 = null;
+                  this.dialect            = null;
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -89,42 +91,14 @@
                               await conn.ping();
                               conn.release();
                               /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Import the Schema
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              const schemaFilePath                = path.resolve(process.cwd(), this.config.schema);
-                              const fileURL                       = new URL(`file://${schemaFilePath.replace(/\\/g, '/')}`); // Fix path for Windows
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Verify it exists
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              if (!fs.existsSync(schemaFilePath)) {
-                                    app.log(`Schema file not found at: ${schemaFilePath}`, 'error');
-                                    return reject(new Error(`Schema file not found at: ${schemaFilePath}`));  // Reject if file is not found
-                              }                     
-                              app.log(`Schema file found at: ${schemaFilePath}`, 'info'); // Log the path of the schema file
-                              const schemaFileContents = fs.readFileSync(schemaFilePath, 'utf-8');
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Verify it exists
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              app.log(`Loading Schema from ${fileURL.href}`, 'info');                  
-                              try {
-                                    const schemaModule            = await import(fileURL.href);
-                                    const schema                  = schemaModule;
-                                    console.log('Schema loaded:', schema);
-                              } catch (err) {
-                                    app.log(`Error importing schema from ${fileURL.href}`, 'error');
-                                    console.log(err);
-                                    throw err;
-                              }               
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                               //|| Create the Kysely Instance
                               //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              const dialect = new MysqlDialect({
-                                    pool: this.pool
-                              });
+                              this.dialect = new MysqlDialect({ pool: this.pool });
+                              app.log(`MySQL [${this.name}] Connection Successful`, 'success');
+                              console.log("DIALECT", this.dialect);
                               /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                               //|| Assign
                               //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              this.db                 = new Kysely({ dialect });
                               this.status             = 'OK';
                               app.log(`MySQL [${this.name}] Connected and Kysely instance created`, 'success');
                               resolve();  
@@ -220,7 +194,7 @@
                                     continue;
                               }
                               const instance = new MySQLInstance(name, config[name]);
-                              await instance.connect();
+                              //await instance.connect();
                               instances.set(name, instance);
                               connectionPromises.push(instance.connect());
                         }
