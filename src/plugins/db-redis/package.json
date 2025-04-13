@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-redis",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Database Wrapper for Redis",
    "type": "module",
    "main": "dist/index.js",

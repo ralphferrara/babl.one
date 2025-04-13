@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-gcp",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Wrapper for Google Cloud Storage blob storage",
    "type": "module",
    "main": "dist/index.js",

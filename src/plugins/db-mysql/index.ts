@@ -57,82 +57,85 @@
             //|| Connect
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            async connect() {
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Check if connected
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  if (this.status === 'OK' || this.status === 'FAIL') {
-                        app.log(`MySQL [${this.name}] already attempted connection (Status: ${this.status}).`, 'warn');
-                        return;
-                  }
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Connect
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
-                  try {
-                        this.pool = mysql.createPool({
-                              host              : this.config.host,
-                              user              : this.config.user ?? this.config.username,
-                              password          : this.config.password,
-                              database          : this.config.database,
-                              port              : this.config.port ?? 3306,
-                              charset           : this.config.charset || 'utf8mb4',
-                              waitForConnections: true,
-                              connectionLimit   : this.config.connectionLimit || 100,
-                              queueLimit        : 0
-                        });
+            async connect()  : Promise<void> {
+                  return new Promise(async (resolve, reject) => {
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Pull Connection and  Check
+                        //|| Check if connected
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        const conn = await this.pool.getConnection();
-                        await conn.ping();
-                        conn.release();
+                        if (this.status === 'OK' || this.status === 'FAIL') {
+                              app.log(`MySQL [${this.name}] already attempted connection (Status: ${this.status}).`, 'warn');
+                              return resolve();
+                        }
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Import the Schema
+                        //|| Connect
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        const schemaFilePath                = path.resolve(process.cwd(), this.config.schema);
-                        const fileURL                       = new URL(`file://${schemaFilePath.replace(/\\/g, '/')}`); // Fix path for Windows
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Verify it exists
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        if (!fs.existsSync(schemaFilePath)) {
-                              app.log(`Schema file not found at: ${schemaFilePath}`, 'error');
-                              return;
-                        }                     
-                        app.log(`Schema file found at: ${schemaFilePath}`, 'info'); // Log the path of the schema file
-                        const schemaFileContents = fs.readFileSync(schemaFilePath, 'utf-8');
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Verify it exists
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        app.log(`Loading Schema from ${fileURL.href}`, 'info');                  
+                        app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
                         try {
-                              const schemaModule            = await import(fileURL.href);
-                              const schema                  = schemaModule;
-                              console.log('Schema loaded:', schema);
+                              this.pool = mysql.createPool({
+                                    host              : this.config.host,
+                                    user              : this.config.user ?? this.config.username,
+                                    password          : this.config.password,
+                                    database          : this.config.database,
+                                    port              : this.config.port ?? 3306,
+                                    charset           : this.config.charset || 'utf8mb4',
+                                    waitForConnections: true,
+                                    connectionLimit   : this.config.connectionLimit || 100,
+                                    queueLimit        : 0
+                              });
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Pull Connection and  Check
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              const conn = await this.pool.getConnection();
+                              await conn.ping();
+                              conn.release();
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Import the Schema
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              const schemaFilePath                = path.resolve(process.cwd(), this.config.schema);
+                              const fileURL                       = new URL(`file://${schemaFilePath.replace(/\\/g, '/')}`); // Fix path for Windows
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Verify it exists
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              if (!fs.existsSync(schemaFilePath)) {
+                                    app.log(`Schema file not found at: ${schemaFilePath}`, 'error');
+                                    return reject(new Error(`Schema file not found at: ${schemaFilePath}`));  // Reject if file is not found
+                              }                     
+                              app.log(`Schema file found at: ${schemaFilePath}`, 'info'); // Log the path of the schema file
+                              const schemaFileContents = fs.readFileSync(schemaFilePath, 'utf-8');
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Verify it exists
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              app.log(`Loading Schema from ${fileURL.href}`, 'info');                  
+                              try {
+                                    const schemaModule            = await import(fileURL.href);
+                                    const schema                  = schemaModule;
+                                    console.log('Schema loaded:', schema);
+                              } catch (err) {
+                                    app.log(`Error importing schema from ${fileURL.href}`, 'error');
+                                    console.log(err);
+                                    throw err;
+                              }               
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Create the Kysely Instance
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              const dialect = new MysqlDialect({
+                                    pool: this.pool
+                              });
+                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                              //|| Assign
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                              this.db                 = new Kysely({ dialect });
+                              this.status             = 'OK';
+                              app.log(`MySQL [${this.name}] Connected and Kysely instance created`, 'success');
+                              resolve();  
                         } catch (err) {
-                              app.log(`Error importing schema from ${fileURL.href}`, 'error');
-                              console.log(err);
-                              throw err;
-                        }               
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Create the Kysely Instance
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        const dialect = new MysqlDialect({
-                              pool: this.pool
-                        });
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Assign
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        this.db                 = new Kysely({ dialect });
-                        this.status             = 'OK';
-                        app.log(`MySQL [${this.name}] Connected and Kysely instance created`, 'success');
-                  } catch (err) {
-                        this.status             = 'FAIL';
-                        this.pool               = null;
-                        this.db                 = null;
-                        app.log(`MySQL [${this.name}] Connection Failed`, 'error');
-                        console.error(err);
-                  }
+                              this.status             = 'FAIL';
+                              this.pool               = null;
+                              this.db                 = null;
+                              app.log(`MySQL [${this.name}] Connection Failed`, 'error');
+                              console.error(err);
+                        }
+                  });
             }
 
 

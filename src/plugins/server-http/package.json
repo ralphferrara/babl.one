@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-http",
-   "version": "0.0.25",
+   "version": "0.0.26",
    "description": "Handles HTTP/s connections",
    "type": "module",
    "main": "dist/index.js",
