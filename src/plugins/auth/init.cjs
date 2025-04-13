@@ -1,8 +1,9 @@
 const fs = require('fs');
 const crypto = require('crypto');
+const path = require('path');
 
 // Define the path to your configuration file
-const configFilePath = './config/auth.json';
+const configFilePath = path.resolve(__dirname, "../../../config/auth.json"); // Adjusting the path to the root project directory
 
 // Function to generate random keys
 function generateRandomKey() {

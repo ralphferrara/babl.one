@@ -30,7 +30,7 @@
    },
    "dependencies": {
       "pg": "^8.14.1",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

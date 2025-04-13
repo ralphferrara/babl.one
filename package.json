@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.16",
+   "version": "3.2.17",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -21,7 +21,6 @@
    },
    "devDependencies": {
       "@types/node": "^22.13.14",
-      "@vitest/coverage-v8": "^3.0.9",
       "chokidar": "^4.0.3",
       "cross-env": "^7.0.3",
       "tsconfig-paths": "^4.2.0",
@@ -31,6 +30,6 @@
       "vitest": "^3.0.9"
    },
    "dependencies": {
-      "@babl.one/core": "^3.2.12"
+      "@babl.one/core": "latest"
    }
 }

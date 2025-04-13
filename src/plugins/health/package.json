@@ -28,7 +28,7 @@
       "typescript": "^5.8.3"
    },
    "dependencies": {
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

@@ -5,7 +5,8 @@
             "port"      : 3306,
             "database"  : "sonata_next",
             "username"  : "root",
-            "password"  : "bablone!"
+            "password"  : "bablone!",
+            "schema"    : "schema/babl.one.ts"
       }
 
 }

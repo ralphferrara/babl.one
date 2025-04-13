@@ -26,7 +26,7 @@
    "dependencies": {
       "@babl.one/sender": "latest",
       "node-fetch": "^3.3.2",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

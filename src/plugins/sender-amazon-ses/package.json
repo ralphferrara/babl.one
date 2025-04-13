@@ -27,7 +27,7 @@
       "@aws-sdk/client-ses": "^3.782.0",
       "@aws-sdk/types": "^3.775.0",
       "@babl.one/sender": "latest",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

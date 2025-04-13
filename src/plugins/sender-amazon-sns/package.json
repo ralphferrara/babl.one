@@ -27,7 +27,7 @@
    "dependencies": {
       "@aws-sdk/client-sns": "^3.782.0",
       "@babl.one/sender": "^0.0.10",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

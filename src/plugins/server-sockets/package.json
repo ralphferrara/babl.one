@@ -32,7 +32,7 @@
    },
    "dependencies": {
       "@babl.one/server-router": "latest",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }

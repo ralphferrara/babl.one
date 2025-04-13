@@ -26,7 +26,7 @@
    "dependencies": {
       "@babl.one/sender": "latest",
       "@sendgrid/mail": "^8.1.5",
-      "@babl.one/core": "@babl.one/core@latest"
+      "@babl.one/core": "latest"
    },
    "peerDependencies": {}
 }
