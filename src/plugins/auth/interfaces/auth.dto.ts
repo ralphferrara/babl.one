@@ -7,8 +7,8 @@
       //|| Types
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { AuthActions, IdentifierType, AuthStatuses, AcccountStatuses }     from './types';
-      import { PageLevel }                                        from '@babl.one/server-router';
+      import { AuthActions, IdentifierType, AuthStatuses, AccountStatuses }   from './types';
+      import { PageLevel }                                                    from '@babl.one/server-router';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| LoginDTO
@@ -31,7 +31,7 @@
             }
             user? : {
                   id?                : number;
-                  status?            : AcccountStatuses;
+                  status?            : AccountStatuses;
                   level?             : PageLevel;
             }
             authJWT?            : string;

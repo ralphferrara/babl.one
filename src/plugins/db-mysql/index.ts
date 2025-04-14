@@ -1,149 +1,124 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
 //|| babl.one Plugin :: MySQL Database
-//|| Provides MySQL-based database access using app.mysql(name)
-//|| Integrated with Kysely
+//|| Provides MySQL-based database access using app.db(name)
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import fs                                             from 'fs';
-      import mysql, { Pool as MySQLPool }                   from 'mysql2/promise';
-      import path                                           from 'path';
-      import { Kysely, MysqlDialect }                       from 'kysely';
+      import { createPool  }                      from 'mysql2/promise';
+      import path                                 from 'path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import { Plugin }                                     from '@babl.one/core';
+      
+      import { Plugin }                           from '@babl.one/core';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app from '@babl.one/core'
+      import app                                  from '@babl.one/core'
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| MySQLInstance Class
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-      
+
       class MySQLInstance {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Var
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            
-            public name             : string;
-            public pool             : MySQLPool | null;
-            public status           : 'INIT' | 'OK' | 'FAIL' | 'CLOSED';
-            public config           : any;
-            public db               : Kysely<any> | null;
-            public dialect          : MysqlDialect | null;
+
+            public name         : string;
+            public client         : any;
+            public status       : string;
+            public config       : any;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             constructor(name: string, config: any) {
-                  this.name               = name;
-                  this.status             = 'INIT';
-                  this.config             = config;
-                  this.pool               = null;
-                  this.db                 = null;
-                  this.dialect            = null;
+                  this.name         = name;
+                  this.status       = 'INIT';
+                  this.config       = config;
+                  this.client         = {};
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Connect
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            async connect()  : Promise<void> {
-                  return new Promise(async (resolve, reject) => {
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Check if connected
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        if (this.status === 'OK' || this.status === 'FAIL') {
-                              app.log(`MySQL [${this.name}] already attempted connection (Status: ${this.status}).`, 'warn');
-                              return resolve();
-                        }
-                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                        //|| Connect
-                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
-                        try {
-                              this.pool = mysql.createPool({
-                                    host              : this.config.host,
-                                    user              : this.config.user ?? this.config.username,
-                                    password          : this.config.password,
-                                    database          : this.config.database,
-                                    port              : this.config.port ?? 3306,
-                                    charset           : this.config.charset || 'utf8mb4',
-                                    waitForConnections: true,
-                                    connectionLimit   : this.config.connectionLimit || 100,
-                                    queueLimit        : 0
-                              });
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Pull Connection and  Check
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              const conn = await this.pool.getConnection();
-                              await conn.ping();
-                              conn.release();
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Create the Kysely Instance
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              this.dialect = new MysqlDialect({ pool: this.pool });
-                              app.log(`MySQL [${this.name}] Connection Successful`, 'success');
-                              console.log("DIALECT", this.dialect);
-                              /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                              //|| Assign
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              this.status             = 'OK';
-                              app.log(`MySQL [${this.name}] Connected and Kysely instance created`, 'success');
-                              resolve();  
-                        } catch (err) {
-                              this.status             = 'FAIL';
-                              this.pool               = null;
-                              this.db                 = null;
-                              app.log(`MySQL [${this.name}] Connection Failed`, 'error');
-                              console.error(err);
-                        }
-                  });
+            async connect() {
+                  app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
+
+                  try {
+                        this.client = createPool({
+                              host                : this.config.host,
+                              user                : this.config.username,
+                              password            : this.config.password,
+                              database            : this.config.database,
+                              charset             : this.config.charset || 'utf8mb4',
+                        });
+                        const conn = await this.client.getConnection();
+                        conn.ping();
+                        conn.release();
+                        this.status = 'OK';
+                        app.log(`MySQL [${this.name}] Connected`, 'success');
+                  } catch (err) {
+                        this.status = 'FAIL';
+                        app.log(`MySQL [${this.name}] Connection Failed`, 'error');
+                        console.error(err);
+                  }
             }
 
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Query
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            async query(sql: string, values: any[] = []): Promise<any> {
+                  const result: any = {
+                        rows: [],
+                        fields: [],
+                        count: 0,
+                        status: 'ERROR',
+                        error: null
+                  };
+
+                  try {
+                        const conn = await this.client.getConnection();
+                        const [rows, fields] = await conn.execute(sql, values);
+                        conn.release();
+
+                        result.rows = rows;
+                        result.fields = fields;
+                        result.count = rows.length;
+                        result.status = 'OK';
+                  } catch (err) {
+                        result.error = err;
+                        app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
+                  }
+
+                  return result;
+            }
+                
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Close Connection
+            //|| Close
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async close(): Promise<void> {
-                  if (this.status === 'CLOSED') return;
-
-                  app.log(`Closing MySQL connection: ${this.name}`, 'info');
-                  this.status = 'CLOSED'; // Set status immediately
-                  if (this.db) {
-                        try {
-                              await this.db.destroy();
-                              app.log(`Kysely instance destroyed for: ${this.name}`, 'info');
-                        } catch (err) {
-                              app.log(`Error destroying Kysely instance for ${this.name}: ${err}`, 'error');
-                        }
-                  } else if (this.pool) {
-                        try {
-                              await this.pool.end();
-                              app.log(`MySQL pool ended directly for: ${this.name}`, 'info');
-                        } catch (err) {
-                              app.log(`Error ending MySQL pool for ${this.name}: ${err}`, 'error');
-                        }
-                  }
-                  this.pool = null; // Clear references
-                  this.db = null;
+                  if (this.client?.end) await this.client.end();
+                  app.log(`Closed MySQL connection: ${this.name}`, 'info');
             }
+
       }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Create the Plugin
+      //|| MySQL Plugin
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       @Plugin('db-mysql', './config/mysql.json')
@@ -152,70 +127,70 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Init
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            
-            static async init(app: any, configPath: string) {
+
+            static async init(app: any, configPath : string) {
+
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Register the tie-in
+                  //|| Get the right config file
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  app.mysql = (name: string = 'default'): MySQLInstance | undefined => {
-                        const instance = instances.get(name);
-                        if (!instance) {
-                              app.log(`MySQL instance '${name}' not found.`, 'error');
-                        }
-                        return instance;
+
+                  const projectDir                                = process.cwd(); // Get the current working directory (project directory)
+                  const configFilePath                            = path.resolve(projectDir, configPath); // Resolve the absolute path relative to the project directory      
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Config
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  app.log("Loading configuration : " + app.path(configFilePath).abs(), 'info');
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Vars
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  const instances : Map<string, MySQLInstance> = new Map();
+                  const config    : any                        = await app.path(configFilePath).json({});
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Attach to App
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  app.mysql = (name: string = 'default') => {
+                        return instances.get(name);
                   };
+
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Get the config file
+                  //|| Load Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  const projectDir              = process.cwd();
-                  const configFilePath          = path.resolve(projectDir, configPath);
-                  app.log("Loading MySQL configuration : " + configFilePath, 'info');
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Create the Config Instances
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  const instances: Map<string, MySQLInstance>     = new Map();
-                  let config: any                                 = {};
-                  try {
-                        config      = await app.path(configFilePath).json();
-                        console.log("CONFIG", config);
-                  } catch (err) {
-                        app.log(`Failed to load MySQL config from ${configFilePath}`, 'error');
-                        console.error(err);
-                        return;
-                  }
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Init
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  const connectionPromises = [];
+
                   for (const name in config) {
-                        if (Object.prototype.hasOwnProperty.call(config, name)) {
-                              if (instances.has(name)) {
-                                    app.log(`MySQL Conflict: Duplicate name '${name}' in config`, 'warn');
-                                    continue;
-                              }
-                              const instance = new MySQLInstance(name, config[name]);
-                              //await instance.connect();
-                              instances.set(name, instance);
-                              connectionPromises.push(instance.connect());
+                        if (instances.has(name)) {
+                              app.log(`MySQL Conflict: Duplicate name '${name}'`, 'warn');
+                              continue;
                         }
+                        const instance = new MySQLInstance(name, config[name]);
+                        instances.set(name, instance);
+                        await instance.connect();
                   }
-                  await Promise.all(connectionPromises);
-                  app.log('All MySQL connection attempts finished.', 'info');
+
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Defer Close
+                  //|| Handle Defer Shutdown
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
                   app.defer(async () => {
-                        app.log('Closing all MySQL connections...', 'info');
-                        const closePromises = [];
-                        for (const instance of instances.values()) {
-                              closePromises.push(instance.close());
+                        for (const [name, instance] of instances) {
+                              try {
+                                    await instance.close();
+                              } catch (err) {
+                                    app.log(`Failed to close MySQL: ${name}`, 'error');
+                              }
                         }
-                        await Promise.all(closePromises);
-                        app.log('All MySQL connections closed.', 'info');
                   });
+
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Loaded
+                  //|| EOI
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  app.log('MySQL Plugin Initialized', 'success');
+
+                  
             }
+
       }

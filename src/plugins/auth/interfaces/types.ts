@@ -25,4 +25,4 @@
       //|| Account Status Types
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export type AcccountStatuses = "ACTIVE" | "PENDING" | "DELETED" | "BANNED" | "LOCKED";
+      export type AccountStatuses = "ACTIVE" | "PENDING" | "DELETED" | "BANNED" | "LOCKED" | "MISSING";
