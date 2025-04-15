@@ -7,7 +7,7 @@
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { MongoClient }                      from 'mongodb';
+      import { MongoClient, Db }                  from 'mongodb';
       import path                                 from 'path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -34,7 +34,7 @@
 
             public name         : string;
             public client       : MongoClient;
-            public db           : any;
+            public db           : Db;
             public status       : string;
             public config       : any;
 
@@ -123,8 +123,10 @@
                   //|| Tie In
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.mongo = (name: string = 'default') => {
-                        return instances.get(name);
+                  app.mongo = async (name: string, database? : string) : Promise<MongoClient | Db | undefined> => {
+                        const instance = instances.get(name);
+                        if (!instance) return undefined;
+                        return (database) ? instance.client.db(database) : instance.client;
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
