@@ -60,7 +60,6 @@
                               const firstAttemptTimestamp = attempts[0].timestamp.getTime();
                               if ((timestamp.getTime() - firstAttemptTimestamp) <= lockoutTime) return false;
                         }
-
                         return true;
                   }
 
@@ -70,6 +69,7 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   watchdog(): void {
+                        if (!Array.isArray(this.attempts)) this.attempts = []; 
                         this.attempts = this.attempts.filter(attempt => {
                               const timestamp = new Date();
                               return (timestamp.getTime() - attempt.timestamp.getTime()) <= this.config.lockoutTime * 1000;

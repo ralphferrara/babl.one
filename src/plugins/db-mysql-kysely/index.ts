@@ -81,10 +81,12 @@
                   app.ky.generate = (name: string, filename: string) => {
                         const config = app.mysql(name).config;
                         try {
-                              const dbUrl             = `mysql://${ config.username }:${ config.password }@${ config.host }:${ config.port }`;
+                              const dbUrl             = `mysql://${config.username}:${config.password}@${config.host}:${config.port}/${config.database}`;
                               const outFilePath       = path.resolve( filename );
                               console.log(`Generating TypeScript interfaces for ${name} to ${ outFilePath }...`);
-                              execSync(`npx kysely-codegen --url "${dbUrl}" --out-file ${ outFilePath }`, { stdio: 'inherit' });
+                              const execStr = `npx kysely-codegen --url "${dbUrl}" --out-file ${outFilePath}`;
+                              console.log(`Executing: ${execStr}`);
+                              execSync(execStr, { stdio: 'inherit' });
                               console.log(`Schema generated and saved to ${outFilePath}`);
                         } catch (error) {
                               console.error('Error generating schema:', error);

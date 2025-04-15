@@ -44,7 +44,6 @@
                   this.boundary           = null;
                   this.request            = request;
                   this.maximumFileSize    = maxFileSize;                   
-                  this.post               = {};
                   this.files              = [];
                   this.parsed             = {
                         method            : "GET",
@@ -73,7 +72,7 @@
                   //|| Get Boundary
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   this.parsed.method  = this.request.method as RequestMethods;
-                  this.parsed.url     = this.url().toString();
+                  this.parsed.url     = this.url().pathname;
                   this.parsed.ip      = this.request.headers['x-forwarded-for']  ? this.request.headers['x-forwarded-for'].split(',')[0].trim() : this.request.socket.remoteAddress || ':::1';                  
                   this.parsed.headers = this.convertHeaders();
                   this.parsed.cookies = this.parseCookies();
@@ -224,9 +223,10 @@
                                                       data: parsedPart.content,
                                                 });
                                           } else if (parsedPart.name) {
-                                                this.post[parsedPart.name] = parsedPart.value;
+                                                this.parsed.post[parsedPart.name] = parsedPart.value;
                                           }
                                     } catch (e) {
+                                          console.log(e);
                                           this.parsed.status = 'FAILED';
                                           this.parsed.error = 'File parsing error';
                                           return resolve(null);
@@ -278,9 +278,10 @@
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         this.request.on('end', () => {
                               try {
-                                    this.post = JSON.parse(bodyData);
+                                    this.parsed.post = JSON.parse(bodyData);
                                     this.parsed.status = "PARSED";
                               } catch (error) {
+                                    console.log(error);
                                     this.parsed.status = "FAILED";
                                     this.parsed.error  = "Bad JSON";
                                     resolve(null);
@@ -311,7 +312,7 @@
                               const parsedBody = parseQueryString(bodyData);
                               Object.keys(parsedBody).forEach(key => {
                                     const value = parsedBody[key];
-                                    this.post[key] = Array.isArray(value) ? value.join(', ') : value || "";
+                                    this.parsed.post[key] = Array.isArray(value) ? value.join(', ') : value || "";
                               });
                               this.parsed.status = "PARSED";
                               resolve(null);

@@ -7,20 +7,20 @@
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      const fs          = require("fs");
-      const path        = require("path");
+      const fs = require("fs");
+      const path = require("path");
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Adjust the source path for the template directory in the plugin directory
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-      
+
       const sourceDir = path.resolve(__dirname, "template");
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Determine the root project directory dynamically (this assumes we're running the script from the node_modules/@babl.one/plugins directory)
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      const projectDir = path.resolve(__dirname, "../../../../"); // Project root
+      const projectDir = path.resolve(__dirname, "../../../"); // Project root
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Check if it exists
@@ -29,7 +29,7 @@
       if (!fs.existsSync(projectDir)) {
             console.error(`Project root directory not found: ${projectDir}`);
             process.exit(1);
-      } else { 
+      } else {
             console.log("Deploying template to project root directory:", projectDir);
       }
 
@@ -59,9 +59,15 @@
                         // If it's a directory, recurse into it
                         copyDir(srcPath, destPath);
                   } else {
-                        // Otherwise, copy the file
-                        fs.copyFileSync(srcPath, destPath);
-                        console.log(`Copied: ${srcPath} to ${destPath}`);
+                        // If the file exists, don't overwrite it
+                        if (!fs.existsSync(destPath)) {
+                              fs.copyFileSync(srcPath, destPath);
+                              console.log(`Copied: ${srcPath} to ${destPath}`);
+                        } else {
+                              console.log(
+                                    `Skipped (file already exists): ${destPath}`
+                              );
+                        }
                   }
             });
       };
@@ -69,5 +75,5 @@
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Do it!
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-      
+
       copyDir(sourceDir, targetDir);

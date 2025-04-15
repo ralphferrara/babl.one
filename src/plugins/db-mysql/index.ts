@@ -7,7 +7,7 @@
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { createPool  }                      from 'mysql2/promise';
+      import { createPool }                       from 'mysql2/promise';
       import path                                 from 'path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -59,7 +59,8 @@
                         this.client = createPool({
                               host                : this.config.host,
                               user                : this.config.username,
-                              password            : this.config.password,
+                              port                : this.config.port || 3306,
+                              password            : this.config.password,                              
                               database            : this.config.database,
                               charset             : this.config.charset || 'utf8mb4',
                         });
@@ -148,8 +149,14 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const instances : Map<string, MySQLInstance> = new Map();
-                  const config    : any                        = await app.path(configFilePath).json({});
-
+                  const config    : any                        = await app.path(configFilePath).json(null);
+                  if (config === null) {
+                        if (app.path(configFilePath).exists()) {
+                              app.log(configFilePath + " : JSON is not valid!", 'error');
+                              return;
+                        }
+                  }
+                  
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Attach to App
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/

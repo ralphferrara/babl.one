@@ -57,7 +57,7 @@
                   password    : {
                         provided : chirp.data('password'),
                   },
-                  action      : "LOGIN",
+                  action      : "FORGOT",
                   twoFactor   : {
                         required    : false
                   }

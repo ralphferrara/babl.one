@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-postgres",
-   "version": "0.0.11",
+   "version": "0.0.13",
    "description": "Database Wrapper for PostgreSQL",
    "type": "module",
    "main": "dist/index.js",

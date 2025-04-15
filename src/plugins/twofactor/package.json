@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/twofactor",
-   "version": "0.0.9",
+   "version": "0.0.10",
    "description": "Wrapper for TwoFactor Authentication",
    "type": "module",
    "main": "dist/index.js",

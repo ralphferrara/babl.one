@@ -18,11 +18,20 @@
             status             : AuthStatuses;
             site               : string;
             identifier         : string;
+            ip?                : string;
+            userAgent?         : string;
             idType             : IdentifierType;
             password?          :  {
                   provided         : string;
                   encrypted?       : string;
-            }
+            },
+            location?          : {
+                  country          : string;
+                  region           : string;
+                  city             : string;
+                  latitude         : string;
+                  longitude        : string;
+            },
             action             : AuthActions;
             twoFactor          : {
                   required          : boolean;

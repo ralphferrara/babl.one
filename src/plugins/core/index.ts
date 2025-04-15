@@ -85,7 +85,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.watchdog = (name: string, func: Function, interval : number) => {
-            app._watchdogs(name, setInterval(func, interval));
+            app._watchdogs.set(name, setInterval(func, interval));
       }
 
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -93,12 +93,15 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.clearWatchdog = (name: string) => {
-            const interval = app._watchdogs.get(name);
-            if (interval) {
-                  clearInterval(interval);
-                  app._watchdogs.delete(name);
+            const intervalId = app._watchdogs.get(name);
+            if (intervalId) {
+                  clearInterval(intervalId);
+                  app._watchdogs.delete(name); // Clean up the interval
+                  app.log(`Watchdog ${name} cleared`, 'info');
+            } else {
+                  app.log(`Watchdog ${name} not found`, 'warn');
             }
-      }
+      };
 
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Route - Placeholder
@@ -230,6 +233,7 @@
                         app.log(`Plugin Loaded Successfully: ${type}`, 'success');
                   } catch (err) {
                         app.log(`Plugin Load Failed: ${type}`, 'error');
+                        console.log(err);
                   }
             } else {
                   // Suggest the npm install command for the missing plugin

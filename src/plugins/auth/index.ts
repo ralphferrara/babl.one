@@ -85,7 +85,13 @@
                   //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const config    : any                        = await app.path(configFilePath).json({});
+                  const config    : any                        = await app.path(configFilePath).json(null);
+                  if (config === null) {
+                        if (app.path(configFilePath).exists()) {
+                              app.log(configFilePath + " : JSON is not valid!", 'error');
+                              return;
+                        }
+                  }
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Set Tie in 
