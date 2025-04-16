@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-postgres",
-   "version": "0.0.16",
+   "version": "0.0.17",
    "description": "Database Wrapper for PostgreSQL",
    "type": "module",
    "main": "dist/index.js",
@@ -32,6 +32,6 @@
       "pg": "^8.14.1"
    },
    "peerDependencies": {
-      "@babl.one/core": "latest"      
+      "@babl.one/core": "latest"
    }
 }

@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/health",
-   "version": "0.0.13",
+   "version": "0.0.14",
    "description": "Health monitoring plugin for babl.one",
    "type": "module",
    "main": "dist/index.js",

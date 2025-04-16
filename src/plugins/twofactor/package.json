@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/twofactor",
-   "version": "0.0.10",
+   "version": "0.0.12",
    "description": "Wrapper for TwoFactor Authentication",
    "type": "module",
    "main": "dist/index.js",
@@ -25,9 +25,8 @@
       "tsx": "^4.19.3",
       "typescript": "^5.3.0"
    },
-   "dependencies": {
-      "@babl.one/jwt": "latest",
-      "@babl.one/core": "latest"
-   },
-   "peerDependencies": {}
+   "peerDependencies": {
+      "@babl.one/core": "latest",
+      "@babl.one/jwt": "latest"
+   }
 }
