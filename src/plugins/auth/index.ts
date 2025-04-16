@@ -30,8 +30,10 @@
       //|| Export Types
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export { AuthActions as AuthActions }       from './interfaces/types';
-      export { AuthStatuses as AuthStatuses }     from './interfaces/types';
+      export { AuthActions as AuthActions }           from './interfaces/types';
+      export { AuthStatuses as AuthStatuses }         from './interfaces/types';
+      export { AccountStatuses as AccountStatuses }   from './interfaces/types';
+      export { default as AbstractAuthClass }         from './interfaces/abstract';
       
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Export Interfaces

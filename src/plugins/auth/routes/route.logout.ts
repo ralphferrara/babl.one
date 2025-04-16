@@ -41,7 +41,7 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Check if we're logged in 
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            if (chirp.authorization.session() !== null)  await app.auth.abstract.sessionRemove(chirp.request.site, chirp.authorization.session());
+            await app.auth.abstract.logout(chirp.request.site, chirp.authorization.session());
             chirp.updateAuth(null, null);
             chirp.setAuthorization("", -1, 0, null, false, "LOGGEDOUT");
             return chirp.success(200, { action: "LOGOUT" });

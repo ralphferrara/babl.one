@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/jwt",
-   "version": "0.0.12",
+   "version": "0.0.14",
    "description": "JWT plugin",
    "type": "module",
    "main": "dist/index.js",
@@ -24,9 +24,7 @@
       "tsx": "^4.19.3",
       "typescript": "^5.8.3"
    },
-   "dependencies": {
-      "crypto": "^1.0.1",
+   "peerDependencies": {
       "@babl.one/core": "latest"
-   },
-   "peerDependencies": {}
+   }
 }

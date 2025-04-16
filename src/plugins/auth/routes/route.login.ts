@@ -70,7 +70,7 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| See if the Login Exists
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            authDTO = await app.auth.abstract.checkLogin(chirp.data("identifier"), chirp.data("password"));
+            authDTO = await app.auth.abstract.checkLogin(chirp.request.site, chirp.data("identifier"), chirp.data("password"));
             if (authDTO.status !== "SUCCESS" )                                            return chirp.error(403, (!authDTO.status) ? "AUTH_UNKNOWN" : "AUTH_" + authDTO.status);                     
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Create the JWT
@@ -92,7 +92,7 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Check if we have a session or create it
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            authDTO.session     = await app.auth.abstract.setSession( chirp.request.site, authDTO);
+            authDTO.session     = await app.auth.abstract.setSession( chirp.request.site, authDTO.user?.id, chirp.request.ip, chirp.request.headers['user-agent']);
             const sessionExists = await app.auth.abstract.sessionExists( chirp.request.site, authDTO.session);
             if (sessionExists)                                                            return chirp.error(403, 'AUTH_LGNSES');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

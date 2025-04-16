@@ -60,7 +60,12 @@
                         copyDir(srcPath, destPath);
                   } else {
                         // Otherwise, copy the file
-                        fs.copyFileSync(srcPath, destPath);
+                        if (!fs.existsSync(destPath)) {
+                              fs.copyFileSync(srcPath, destPath);
+                              console.log(`Copied: ${srcPath} to ${destPath}`);
+                        } else {
+                              console.log(`Skipped (already exists): ${destPath}`);
+                        }
                         console.log(`Copied: ${srcPath} to ${destPath}`);
                   }
             });

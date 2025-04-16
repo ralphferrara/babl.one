@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mongo",
-   "version": "0.0.24",
+   "version": "0.0.30",
    "description": "Database Wrapper for MongoDB",
    "type": "module",
    "main": "dist/index.js",
@@ -20,6 +20,8 @@
       "dev": "tsx index.ts",
       "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
       "release": "node release.mjs",
+      "prepack": "node -e \"require('fs').copyFileSync('../template.cjs', 'template.cjs')\"",
+      "postpack": "node -e \"require('fs').unlinkSync('template.cjs')\"",
       "postinstall": "node template.cjs"
    },
    "devDependencies": {
