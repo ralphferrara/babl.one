@@ -1,0 +1,34 @@
+{
+      "defaultSendgrid"  : {
+            "service"         : "sendGrid",
+            "from"            : "",
+            "token"           : ""
+      },
+      "defaultSES" : {
+            "service"         : "SES",
+            "from"            : "",
+            "account"         : "",
+            "privateKey"      : "",
+            "region"          : "" 
+      },
+      "defaultSIB" : {
+            "service"         : "sendInBlue",
+            "from"            : "",
+            "account"         : "",
+            "privateKey"      : ""
+      },           
+      "defaultTwilio" : {
+            "service"         : "twilio",
+            "from"            : "",
+            "account"         : "",            
+            "privateKey"      : "",
+            "phone"           : ""
+      },
+      "defaultSNS" : { 
+            "service"         : "SNS",
+            "from"            : "",
+            "account"         : "",
+            "privateKey"      : "",
+            "region"          : "us-west-2"
+      }   
+}

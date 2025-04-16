@@ -1,0 +1,9 @@
+{
+      "api" : { 
+            "host"      : "localhost",
+            "port"      : 8080,
+            "sslKey"    : null,
+            "sslCert"   : null,
+            "sslCA"     : null
+      }
+}

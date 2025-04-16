@@ -8,6 +8,5 @@
          "moduleDetection": "force",
          "strict": true,
          "skipLibCheck": true
-      },
-      "include": ["index.ts"]
+      }
    }
