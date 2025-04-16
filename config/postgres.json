@@ -1,0 +1,9 @@
+{
+      "sample": {
+            "host"      : "localhost",
+            "port"      : 3306,
+            "database"  : "babl_global",
+            "username"  : "username",
+            "password"  : "password"
+      }
+}
