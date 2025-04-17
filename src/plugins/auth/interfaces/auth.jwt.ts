@@ -7,7 +7,7 @@
       //|| LoginJWT
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export default interface AuthJWT {
+      export interface AuthJWT {
             site               : string;
             id                 : number;
             level              : number;

@@ -14,7 +14,7 @@
       //|| LoginDTO
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export default interface AuthDTO {
+      export interface AuthDTO {
             status             : AuthStatuses;
             site               : string;
             identifier         : string;

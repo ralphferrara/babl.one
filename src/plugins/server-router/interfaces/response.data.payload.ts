@@ -15,5 +15,5 @@
             cookies?          : string[];
             data              : any;
             route             : string;
-            ttl               : number;
+            ttl?              : number;
       }   

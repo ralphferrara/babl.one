@@ -7,7 +7,7 @@
       //|| Packages
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app                    from "@babl.one/core";           
+      import { app }                from "../app";
       import { Chirp }              from "@babl.one/server-router"; 
       import TwoFactor              from "@babl.one/twofactor";
 
@@ -23,6 +23,7 @@
             //|| Check Abstract
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             app.auth.checkAbstract();
+            if (app.auth.config.secretJWT === null || app.auth.config.secretJWT === "") throw new Error("Auth Config :: secretJWT is not set");
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Basic
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -35,33 +36,49 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Basic Validation
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            const validate = TwoFactor.validate(chirp.data('jwt'), chirp.data('code'), 'your_secret');
+            app.log('AuthVerify : twoFactor validate()', 'info');            
+            const validate = TwoFactor.validate(chirp.data('jwt'), chirp.data('code'), app.auth.config.secretJWT);
             if (validate.validated === false)                                            return chirp.error(403, validate.reason || "UNKNOWN");
             if (validate.identifier === null || validate.identifier === "")              return chirp.error(403, 'AUTH_TFUID');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Check if we have a session or create it
-            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            if (validate.action === 'REGISTER') {
-                  const userID = await app.auth.abstract.createUserAccount(chirp.request.site, validate.identifier || "" );
-                  if (userID === null) return chirp.error(403, 'AUTH_REGFAIL');
-            }
-            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Get the user by identifier
-            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            const authDTO = await app.auth.abstract.pullUserVerified(validate.identifier || "");
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/            
+            app.log('AuthVerify : checkUser()', 'info');            
+            let userRecord = await app.auth.abstract.checkUser(chirp.request.site, validate.identifier);
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| No Record but we are registering
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/            
+            console.log(userRecord);
+            console.log(validate);
+            if ( userRecord.status === "FAILED" && validate.action === 'REGISTER') {
+                  app.log('AuthVerify : register()', 'info');
+                  const userID = await app.auth.abstract.createUserAccount(chirp.request.site, validate.identifier || "" );
+                  if (!userID) return chirp.error(403, 'AUTH_REGFAIL');
+                  app.log('AuthVerify : registered('+userID+')', 'success');
+                  userRecord = await app.auth.abstract.checkUser(chirp.request.site, validate.identifier);
+            }                
+            console.log(userRecord);
+            if (userRecord.status === "FAILED") return chirp.error(403, 'AUTH_USRMISS');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Check if we have a session or create it
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            authDTO.session  = await app.auth.abstract.setSession( chirp.request.site, authDTO);
-            if (await !app.auth.abstract.sessionExists( chirp.request.site, authDTO.session))                     return chirp.error(403, 'AUTH_LGNSES');
+            app.log('AuthVerify : setSession()', 'info');            
+            const session  = await app.auth.abstract.setSession( chirp.request.site, userRecord.id, chirp.request.ip, chirp.request.headers["user-agent"]);
+            const userId   = await app.auth.abstract.getSessionUserId( chirp.request.site, session);
+            if (!userId)                     return chirp.error(403, 'AUTH_LGNSES');
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Create authJWT
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+            const authJWT = app.auth.makeAuthJWT( chirp.request.site, userRecord.id, userRecord.level );
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Respond
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             app.log('AuthLogin : respond()', 'info');
+            chirp.updateAuth( authJWT, session );
             var respData = {
-                  action         : authDTO.action,
-                  authJWT        : authDTO.authJWT,
-                  session        : authDTO.session
+                  action         : validate.action,
+                  authJWT        : authJWT,
+                  session        : session
             };
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Done!

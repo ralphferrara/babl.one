@@ -7,15 +7,15 @@
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import AuthConfig                   from '../interfaces/config';
+      import { AuthConfig }               from '../interfaces/config';
       import { AuthActions }              from '../interfaces/types';
-      import AuthAttempt                  from '../interfaces/auth.attempt';
+      import { AuthAttempt }              from '../interfaces/auth.attempt';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
       //|| Class
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            export default class AuthAttempts {
+            export class AuthAttempts {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Config Object
@@ -51,10 +51,17 @@
                   //|| Checks if a specific action is allowed based on max attempts and interval
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  allowed(action: AuthActions, ip: string): boolean {
+                  async allowed(action: AuthActions, ip: string): Promise<boolean> {
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                        //|| Disuade Timing attacks and brute force
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                        await new Promise(r => setTimeout(r, Math.floor(Math.random() * 2001)));
+                        /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                        //|| Allowed Attempt Check
+                        //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         const attempts          = this.attempts.filter(attempt => attempt.action === action && attempt.ip === ip);
-                        const maxAttempts       = this.config.maxAttempts; // Maximum attempts from config
-                        const lockoutTime       = this.config.lockoutTime * 1000; // Convert to milliseconds
+                        const maxAttempts       = this.config.maxAttempts; 
+                        const lockoutTime       = this.config.lockoutTime * 1000; 
                         const timestamp         = new Date();
                         if (attempts.length >= maxAttempts) {
                               const firstAttemptTimestamp = attempts[0].timestamp.getTime();

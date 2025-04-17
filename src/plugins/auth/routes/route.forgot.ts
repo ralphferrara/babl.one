@@ -7,21 +7,21 @@
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import AuthDTO                from "../interfaces/auth.dto";
+      import { AuthDTO }             from "../interfaces/auth.dto";
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Packages
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app                    from "@babl.one/core";           
-      import { Chirp }              from "@babl.one/server-router"; 
-      import TwoFactor              from "@babl.one/twofactor";
+      import { app }                 from "../app";           
+      import { Chirp }               from "@babl.one/server-router"; 
+      import TwoFactor               from "@babl.one/twofactor";
       
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Classes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import Auth                   from "../classes/auth";
+      import { Auth }                from "../classes/auth";
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Forgot Route
@@ -34,51 +34,36 @@
             //|| Check Abstract
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             app.auth.checkAbstract();
+            if (app.auth.config.secretJWT === null || app.auth.config.secretJWT === "") throw new Error("Auth Config :: secretJWT is not set");
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Basic
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             if (chirp === null) return console.log('Chirp is NULL!!! - CHP000');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Check if we have too many failed logins
-            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            if ( app.auth.abstract.actionAttemptBlocked("FORGOT", chirp) )                      return chirp.error(403, 'AUTH_LNGTMY');
-            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Check Email
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             if (chirp.data('identifier') === null || chirp.data('identifier') === "")      return chirp.error(403, 'AUTH_LGNMID');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Create the DTO
+            //|| Check if we have too many failed logins
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            let authDTO : AuthDTO = {
-                  status      : "PENDING",
-                  site        : chirp.request.site,
-                  identifier  : chirp.data('identifier'),
-                  idType      : Auth.determineIdentifier(chirp.data('identifier')),
-                  password    : {
-                        provided : chirp.data('password'),
-                  },
-                  action      : "FORGOT",
-                  twoFactor   : {
-                        required    : false
-                  }
-            };
+            if ( await app.auth.attempts.allowed("FORGOT", chirp.request.ip) === false)    return chirp.error(403, 'AUTH_LNGTMY');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| See if the Login Exists
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            authDTO = await app.auth.abstract.pullUserVerified(authDTO.identifier);
-            if (authDTO.status !== "SUCCESS" )                                            return chirp.error(403, (!authDTO.status) ? "AUTH_UNKNOWN" : "AUTH_" + authDTO.status);                     
+            const userRecord = await app.auth.abstract.checkUser(chirp.request.site, chirp.data("identifier"));
+            if ( userRecord.status === "FAILED" )                                          return chirp.error(403, "AUTH_FAILED");                     
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Handle Two Factor if required Don't generate session yet
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-            const twoFactor = TwoFactor.generate(chirp.request.site, authDTO.identifier, "FORGOT", "your_secret");
-            await app.auth.abstract.send(chirp.request.site, authDTO.identifier, authDTO.idType, twoFactor.code);
+            const twoFactor = TwoFactor.generate(chirp.request.site, chirp.data("identifier"), "FORGOT", app.auth.config.secretJWT);
+            await app.auth.abstract.send(chirp.request.site, chirp.data("identifier"), app.auth.determineIdentifier(chirp.data("identifier")), twoFactor.code);
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Success
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             return chirp.success({ 
                   action            : "VERIFY",
                   twoFactorJWT      : twoFactor.jwt,
-                  authJWT           : authDTO.authJWT
+                  authJWT           : app.auth.makeAuthJWT( chirp.request.site, userRecord.id, userRecord.level )
             });
       }
 

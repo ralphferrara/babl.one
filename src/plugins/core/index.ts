@@ -138,11 +138,11 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       app.plugins = async (dir: string = 'src/plugins') => {
-            const resolvedDir = path.resolve(process.cwd(), dir); // <- ✅ resolves to absolute path
+            const resolvedDir = path.resolve(process.cwd(), dir); 
             const fw = new FileWatcher(resolvedDir);
             fw.recursive  = true;
             fw.extMatch   = 'ts';
-            fw.watch      = (process.env.NODE_ENV === 'production') ? false : true;
+            fw.watch      = false;
             fw.callback   = async (files) => {
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Reboot on plugin change
@@ -157,7 +157,7 @@
                   let pluginCount = 0;
                   for (const file of files) {
                         try {
-                              const pluginPath  = ( process.env.NODE_ENV === 'production' ) ? pathToFileURL(file.absolute).href : pathToFileURL(file.absolute).href + `?update=${Date.now()}`;
+                              const pluginPath  = pathToFileURL(file.absolute).href;
                               const plugin      = await import(pluginPath);
                               const pluginClass = plugin?.default;
                               const pluginName  = pluginClass?.__pluginName;

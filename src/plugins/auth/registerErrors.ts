@@ -3,7 +3,7 @@
 //|| Register a list of error codes
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app                    from "@babl.one/core";
+      import app                     from "@babl.one/core";
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Login
@@ -28,6 +28,7 @@
       app.registerError('AUTH_TFCODE',    'Two Factor code is required');
       app.registerError('AUTH_TFUID',     'Two Factor identifier is missing');
       app.registerError('AUTH_REGFAIL',   'Failed to create a new account');
+      app.registerError('AUTH_USRMISS',   'Could not find account');
       app.registerError('AUTH_NORENEW',   'Could not renew JWT');
       app.registerError('AUTH_INVJWT',    'Invalid Authorization token');
       app.registerError('AUTH_SEXPIRED',  'Session has expired');

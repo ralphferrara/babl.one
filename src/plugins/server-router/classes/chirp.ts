@@ -254,7 +254,7 @@
                         headers   : headers || {},
                         data      : data || {} ,
                         route     : this.routePath,
-                        ttl       : this.ttl.elapsed()
+                        ttl       : (process.env.NODE_ENV === "development") ? this.ttl.elapsed() : undefined
                   }   
                   this.respond(responsePayload);
             }

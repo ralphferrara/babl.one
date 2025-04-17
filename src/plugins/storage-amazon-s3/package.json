@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-amazon-s3",
-   "version": "0.0.7",
+   "version": "0.0.8",
    "description": "Wrapper for AWS S3 blob storage",
    "type": "module",
    "main": "dist/index.js",

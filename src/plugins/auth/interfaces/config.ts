@@ -3,7 +3,7 @@
 //|| Provides the configuration for the Auth Class
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             
-      export default interface AuthConfig {
+      export interface AuthConfig {
             secretJWT                   : string;
             secretPassword              : string;
             passwordIterations          : number;
