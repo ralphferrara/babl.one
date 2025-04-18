@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/auth",
-   "version": "0.0.60",
+   "version": "0.0.61",
    "description": "Handle the Authentication and Authorization of the Babl.one system",
    "type": "module",
    "main": "./dist/index.js",
@@ -20,7 +20,7 @@
    ],
    "scripts": {
       "dev": "cross-env NODE_ENV=development tsx src/index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\babl-auth\\node_modules\\@babl.one\\auth\\dist\"",
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\auth\\dist\"",
       "release": "node release.mjs",
       "postinstall": "node template.cjs && node init.cjs"
    },

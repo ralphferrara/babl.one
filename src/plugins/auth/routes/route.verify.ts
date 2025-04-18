@@ -48,8 +48,6 @@
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| No Record but we are registering
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/            
-            console.log(userRecord);
-            console.log(validate);
             if ( userRecord.status === "FAILED" && validate.action === 'REGISTER') {
                   app.log('AuthVerify : register()', 'info');
                   const userID = await app.auth.abstract.createUserAccount(chirp.request.site, validate.identifier || "" );
@@ -57,7 +55,6 @@
                   app.log('AuthVerify : registered('+userID+')', 'success');
                   userRecord = await app.auth.abstract.checkUser(chirp.request.site, validate.identifier);
             }                
-            console.log(userRecord);
             if (userRecord.status === "FAILED") return chirp.error(403, 'AUTH_USRMISS');
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Check if we have a session or create it

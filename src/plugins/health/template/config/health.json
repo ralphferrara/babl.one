@@ -1,5 +1,4 @@
 {
-      "secretKey"        : "SECRETKEY123",
-      "port"             : "9000",
+      "port"             : "9001",
       "writeInterval"    : "30000"
 }

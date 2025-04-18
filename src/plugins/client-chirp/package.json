@@ -1,0 +1,35 @@
+{
+   "name": "@babl.one/client-chirp",
+   "version": "0.0.9",
+   "description": "A reusable browser-side communications client for /plugins/server-http",
+   "main": "dist/index.cjs",
+   "module": "dist/index.mjs",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "require": "./dist/index.cjs",
+         "import": "./dist/index.mjs"
+      }
+   },
+   "scripts": {
+      "dev": "tsup index.ts --watch",
+      "build": "tsup index.ts --format esm,cjs --dts",
+      "release": "node release.mjs"
+   },
+   "keywords": [
+      "typescript",
+      "browser",
+      "component",
+      "javascript",
+      "umd"
+   ],
+   "author": "Ralph Ferrara",
+   "license": "MIT",
+   "devDependencies": {
+      "tsup": "^7.2.0",
+      "typescript": "^5.4.0"
+   },
+   "dependencies": {
+      "@babl.one/server-router": "^0.0.36"
+   }
+}

@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.29",
+   "version": "3.2.30",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",
@@ -30,6 +30,7 @@
       "vitest": "^3.0.9"
    },
    "dependencies": {
+      "@babl.one/client-chirp": "^0.0.9",
       "@babl.one/core": "latest"
    }
 }

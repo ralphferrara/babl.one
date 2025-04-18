@@ -44,7 +44,7 @@
             constructor(name: string, config: any) {
                   this.name         = name;
                   this.status       = 'INIT';
-                  this.config       = config;
+                  this.config       = config;            
                   this.client         = {};
             }
 

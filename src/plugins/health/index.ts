@@ -30,10 +30,17 @@
             static async init(app: any, configPath : string) {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Get the right config file
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  const projectDir                                = process.cwd(); // Get the current working directory (project directory)
+                  const configFilePath                            = path.resolve(projectDir, configPath); // Resolve the absolute path relative to the project directory      
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Config Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const config    = await app.path(configPath).json({});
+                  const config    = await app.path(configFilePath).json({});
                   const data      : Map<string, any> = new Map();
                   let child       : ChildProcessWithoutNullStreams | null = null;
 
@@ -50,7 +57,8 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const writeInterval = setInterval(() => {
-                        app.path("/.health/data/data.json").write(JSON.stringify(data) || "{}");
+                        const configFilePath = path.resolve(projectDir, ".health/data/data.json");
+                        app.path(configFilePath).write(JSON.stringify(data) || "{}");
                   }, config.writeInterval);
 
                   
@@ -58,7 +66,7 @@
                   //|| Start health server (child process)
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  child = spawn('node', [path.resolve(__dirname, 'healthServer.js'), process.env.PID, config.secretKey, config.port || 9000]);
+                  child = spawn('node', [path.resolve(projectDir, '.health/monitor.cjs'), process.env.PID, config.secretKey, config.port || 9001]);
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Start health server (child process)
