@@ -8,6 +8,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       import { AuthStatuses, AccountStatuses }  from './types';
+      import { UserCheckResponse }              from './user.check';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| AbstractAuthClass
@@ -25,20 +26,11 @@
             //|| User
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+            usernameExists(site: string, username: string): Promise<boolean>;
             createUserAccount(site: string, identifier: string): Promise<number | undefined>;
             updateHeartbeat(site: string, user: number, session: string): Promise<void>;
-            checkUser(site: string, identifier: string): Promise<{
-                  id: number;
-                  level: number;
-                  account: AccountStatuses;
-                  status: AuthStatuses;
-            }>;
-            checkLogin(site: string, identifier: string, password: string): Promise<{
-                  id: number;
-                  level: number;
-                  account: AccountStatuses;
-                  status: AuthStatuses;
-            }>;
+            checkUser(site: string, identifier: string): Promise<UserCheckResponse>;
+            checkLogin(site: string, identifier: string, password: string): Promise<UserCheckResponse>;
             checkIfExists(site: string, identifier: string): Promise<boolean>;
             getMe(site: string, user: number): Promise<any | undefined>;
             setPassword(site: string, user: number, password: string): Promise<boolean>;

@@ -175,9 +175,9 @@
                   const amexRegex = /^3[47][0-9]{13}$/; // American Express
                   const otherRegex = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9]{2})[0-9]{12}|3[0-9]{14})$/; // Other major cards
                   if (amexRegex.test(sanitizedCardNumber)) {
-                  return /^\d{4}$/.test(cvv); // Amex has 4-digit CVV
+                        return /^\d{4}$/.test(cvv); // Amex has 4-digit CVV
                   } else if (otherRegex.test(sanitizedCardNumber)) {
-                  return /^\d{3}$/.test(cvv); // Other cards have 3-digit CVV
+                        return /^\d{3}$/.test(cvv); // Other cards have 3-digit CVV
                   }
                   return false;
             };

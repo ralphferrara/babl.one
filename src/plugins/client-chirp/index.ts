@@ -1,6 +1,6 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| utils/chirp.ts
-//|| Chirp API Wrapper
+//|| plugins/client-chirp.ts
+//|| Chirp : Handles all calls to server-http
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -29,6 +29,7 @@
             //|| Request
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             
+            public method           : string    = "POST";
             public secure           : boolean   = true;
             public server           : string    = "localhost:3000";
             public route            : string    = "";
@@ -55,6 +56,7 @@
             //|| State
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+            public rawResponse      : string = "";
             public status           : "PENDING" | "SUCCESS" | "ERROR" = "PENDING";
             public http             : number = 100;
 
@@ -90,10 +92,61 @@
             //|| Make URL
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            public routeURL( ) {
-                  this.secure             = !this.server.includes('localhost') && !this.server.startsWith('127.') && !this.server.endsWith('.local');
-                  this.url                = `${ (this.secure) ? "https" : "http"}://${this.server}/${this.version}${this.route}`;
+            public routeURL() {
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| Temporary Hack Job until @babl.one/servers is implemented
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  const serverURL         = this.servers();
+                  const baseURL           = `${this.secure ? "https" : "http"}://localhost:3000${this.route}`;            
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| POST
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  if (this.method === "POST") this.url          = baseURL;
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| GET
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  if (this.method === "GET" && Object.keys(this.requestData).length > 0) {
+                        const params      = new URLSearchParams();
+                        for (const key in this.requestData) {
+                              if (this.requestData.hasOwnProperty(key)) {
+                                    const value = this.requestData[key];
+                                    if (value !== undefined && value !== null) {
+                                          params.append(key, String(value));
+                                    }
+                              }
+                        }
+                        this.url = `${baseURL}?${params.toString()}`;
+                  } else {
+                        this.url = baseURL;
+                  }
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| POST
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/            
                   return this.url;
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Sites :: TODO :: Implement @babl.one/servers
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public servers() { 
+                  switch(this.server) { 
+                        case "babl.next.js": 
+                              this.secure = false;
+                              return "";
+                              break;
+                        case "auth.babl.one": 
+                              this.secure = false;
+                              return "/server/auth/" + this.version;
+                              break;
+                        case "api.babl.one":
+                              this.secure = false;
+                              return "/server/api/" + this.version + "/";
+                              break;
+                        case "test" : return "?";
+                        default:
+                              throw new Error("Invalid server");
+                  }
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -135,28 +188,34 @@
             //|| Execute
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            public async execute() {
+            public async execute(): Promise<Response | void> {
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Route URL
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.routeURL();
+                  //this.routeURL();
+                  this.url = this.server + this.route;
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| Debig 
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (this.debug) {
                         console.log("");
-                        console.log("||=================== CHIRP BEGIN =======================||");
+                        console.log("||================== CHIRP BEGIN ======================||");
                         console.log("URL   : ", this.url);
-                        console.log("DATA  : ", this.requestData);
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| ttl
+                  //|| TTL
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   const start = performance.now();
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Headers
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.headers.append("Content-Type", "application/json");
-                  this.headers.append("authJWT",      this.authJWT);
-                  this.headers.append("session",      this.session);                  
-                  if (this.debug) console.log("HEADR  : ", this.headers);
+                  this.headers.set("Content-Type", "application/json");
+                  this.headers.set("authJWT",      this.authJWT);
+                  this.headers.set("session",      this.session);
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| CSRF Support, must implmeent @babl.one/csrf on auth cookie set
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  this.csrf();
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Mock Mode
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -165,68 +224,118 @@
                               setTimeout(() => {
                                     this.status                   = (this.responsePayload.status === 200) ? "SUCCESS" : "ERROR";
                                     this.http                     = this.responsePayload.status;
-                                    this.responsePayload.message  = `MOCK[${this.responsePayload.message}]`
+                                    this.responsePayload.message  = `MOCK[${this.responsePayload.message}]`;
                                     this.debugPayload();
                                     resolve(undefined);
                               }, this.mockDelay);
                         });
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| Headers
+                  //|| Fetch
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  let response;
-                  try { 
-                        response    = await fetch(this.url, {
-                              method      : "POST",
+                  let response: Response;
+                  try {
+                        response = await fetch(this.url, {
+                              method      : this.method,
                               headers     : this.headers,
-                              body        : this.requestData ? JSON.stringify(this.requestData) : null
+                              body        : this.method === "POST" ? JSON.stringify(this.requestData) : undefined
                         });
+                        this.setCSRF();
                   } catch (error) {
                         console.error("CHIRP FETCH ERROR:");
                         console.log(error);
-                        this.responsePayload.status                  = 501,
-                        this.responsePayload.message                 = "CHP_UNKNOWN"
+                        this.responsePayload.status                  = 501;
+                        this.responsePayload.message                 = "CHP_UNKNOWN";
                         this.debugPayload();
                         return;
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| Handle Converting to JSON
+                  //|| Relay Bypass
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  this.rawResponse = await response.text();
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| Parse JSON
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   let responseJSON;
-                  try { 
+                  try {
                         responseJSON = await response.json();
-                  } catch (error) {                        
+                  } catch (error) {
                         console.error("CHIRP : INVALID JSON RESPONSE:");
                         console.log(response);
-                        this.responsePayload.status                  = response.status,
-                        this.responsePayload.message                 = "CHP_BAD_JSON",
-                        this.responsePayload.headers                 = this.makeHeaders(response.headers),
-                        this.responsePayload.route                   = this.route,
+                        this.responsePayload.status                  = response.status;
+                        this.responsePayload.message                 = "CHP_BAD_JSON";
+                        this.responsePayload.headers                 = this.makeHeaders(response.headers);
+                        this.responsePayload.route                   = this.route;
                         this.status                                  = "ERROR";
                         this.http                                    = response.status;
+                        this.setCSRF();
                         this.debugPayload();
                         return;
-                  }                  
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| Success
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.responsePayload = {
-                        status                  : response.status,
-                        message                 : responseJSON.message  || "CHP_NOMESS", 
-                        headers                 : responseJSON.headers  || {},
-                        redirect                : responseJSON.redirect || "",
-                        data                    : responseJSON.data     || {},
-                        route                   : responseJSON.route    || this.route,
-                        ttl                     : performance.now() - start
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| Error
+                  //|| Store Response
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.status       = response.status === 200 ? "SUCCESS" : "ERROR";
-                  this.http         = 200;
+                  this.responsePayload = {
+                        status      : response.status,
+                        message     : responseJSON.message  || "CHP_NOMESS",
+                        headers     : responseJSON.headers  || {},
+                        redirect    : responseJSON.redirect || "",
+                        data        : responseJSON.data     || {},
+                        route       : responseJSON.route    || this.route,
+                        ttl         : performance.now() - start
+                  };
+                  this.setCSRF();
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| Cone
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  this.status          = response.status === 200 ? "SUCCESS" : "ERROR";
+                  this.http            = 200;
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| Done
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   this.debugPayload();
                   return;
-            }                       
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Get CSRF
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public getCSRF() {
+                  if (typeof(window) === "undefined") return;
+                  const csrf = window.localStorage.getItem("csrf");
+                  if (!csrf) return;
+                  return csrf;
+            }
+
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Set CSRF token on request
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public csrf() {
+                  const csrf = this.getCSRF();
+                  if (csrf) this.headers.set("x-csrf-token", csrf);
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Set CSRF in localStorage
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public setCSRF() {
+                  if (this.responsePayload.headers === undefined) return;
+                  if (typeof(window) === "undefined" || typeof(window.localStorage) === "undefined") return;
+                  if (this.responsePayload.headers['x-chirp-csrf-token'] === undefined) return;
+                  window.localStorage.setItem("csrf", this.responsePayload.headers['x-chirp-csrf-token']);
+            }
+            
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Relay
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public relay() : ResponseDataPayload {
+                  return this.responsePayload;
+            }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
             //|| Make Headers
@@ -283,12 +392,14 @@
 
             public debugPayload() {
                   if (this.debug) {
-                        console.groupCollapsed(`%c🐦 CHIRP ${this.route} [${this.status}]`, 'color: dodgerblue; font-weight: bold;');
-                        console.log('%c→ URL      ', 'color: gray;', this.url);
+                        console.groupCollapsed(`%c🐦 RESPONSE ${this.route} [${this.status}]`, 'color: dodgerblue; font-weight: bold;');
+                        console.log('%c→ URL     ', 'color: gray;', this.url);
+                        console.log('%c→ SERVER  ', 'color: gray;', this.server);
                         console.log('%c→ HEADERS ', 'color: gray;', Object.fromEntries(this.headers.entries()));
                         console.log('%c→ DATA    ', 'color: gray;', this.requestData);
                         console.log('%c→ STATUS  ', 'color: gray;', this.status);
                         console.log('%c→ PAYLOAD ', 'color: gray;', this.responsePayload);
+                        console.log('%c→ CSRF ', 'color: gray;', this.getCSRF());
                         console.groupEnd();
                         console.log("||=================== CHIRP END =======================||");
                         console.log("");

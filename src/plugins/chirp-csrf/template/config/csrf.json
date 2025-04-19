@@ -1,0 +1,4 @@
+{
+      "secret"          : "csrf_secret_token :: GENERATE A RANDOM ONE",
+      "expires"         : 3600
+}

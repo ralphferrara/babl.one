@@ -35,4 +35,9 @@
       app.registerError('AUTH_SUCCESS',   'Authorization Successful');
       app.registerError('AUTH_LOWPERM',   'Insufficient permissions to access');
       app.registerError('AUTH_NOAUTH',    'Authorization headers were not provided');
+      app.registerError('AUTH_UNMISS',    'Username is missing');
+      app.registerError('AUTH_UNEXST',    'Username already exists');
+      app.registerError('AUTH_BADAGE',    'Age provided is invalid');
+      app.registerError('AUTH_NOTOLD',    'Sorry, you are not old enough to access this site');
       app.registerError('LOGGEDOUT',      'You have been logged out');
+      app.registerError('MISS_AGE',       'Missing parameter: age');

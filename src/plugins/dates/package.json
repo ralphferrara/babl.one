@@ -1,7 +1,7 @@
 {
-	"name": "@babl.one/auth",
-	"version": "0.0.62",
-	"description": "Handle the Authentication and Authorization of the Babl.one system",
+	"name": "@babl.one/dates",
+	"version": "0.0.1",
+	"description": "Some useful functions for dates",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -12,27 +12,12 @@
 	},
 	"files": [
 		"dist",
-		"template",
-		"template.cjs",
-		"registerErrors.mjs",
-		"init.cjs",
 		"README.md"
 	],
 	"scripts": {
 		"dev": "cross-env NODE_ENV=development tsx src/index.ts",
 		"build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\auth\\dist\"",
-		"release": "node release.mjs",
-		"postinstall": "node template.cjs && node init.cjs"
-	},
-	"peerDependencies": {
-		"@babl.one/core": "latest",
-		"@babl.one/jwt": "latest",
-		"@babl.one/server-router": "^0.0.34",
-		"@babl.one/twofactor": "latest",
-		"@babl.one/validate": "latest"
-	},
-	"dependencies": {
-		"bcryptjs": "latest"
+		"release": "node release.mjs"
 	},
 	"devDependencies": {
 		"@types/node": "^22.13.14",

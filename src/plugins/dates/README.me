@@ -1,0 +1,45 @@
+# Plugin : babl.one/date
+
+This plugin provides the app with helpful date and time utilities that extend the native JavaScript `Date` class with practical, ready-to-use functions.
+
+## Overview
+
+The **Date Plugin** adds common time-based calculations and formatting methods not included in the native JavaScript `Date` class. It provides a simple, reliable way to determine ages, elapsed time, and MySQL-compatible date formatting.
+
+## Installation
+
+Ensure that the plugin is included in your project and properly registered.
+
+1. Install the plugin using npm:
+```bash
+   npm install @babl.one/date
+```
+
+2. Usage
+
+Import the individual functions or use them through the `app.date()` interface if registered in the plugin system.
+
+### Example Usage
+```ts
+import { age, elapsedSince, mysql } from '@babl.one/date';
+
+const birthday = new Date('1990-06-15');
+const userAge = age(birthday); // 34
+
+const past = new Date('2025-01-01T12:00:00Z');
+const timeElapsed = elapsedSince(past);
+// { days: 107, hours: 5, minutes: 22, seconds: 18 }
+
+const nowFormatted = mysql(); // '2025-04-18 13:46:00'
+```
+
+## Available Functions
+
+### age(date: Date): number
+Returns the number of full years that have passed since the given date.
+
+### elapsedSince(date: Date): { days, hours, minutes, seconds }
+Calculates the time elapsed since a given date and returns a breakdown in days, hours, minutes, and seconds.
+
+### mysql(date?: Date): string
+Returns a MySQL-compatible datetime string: `YYYY-MM-DD HH:MM:SS`.

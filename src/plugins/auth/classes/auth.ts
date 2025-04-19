@@ -152,9 +152,11 @@
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Load and Check
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  const authJWT  = chirp.request.cookies["authJWT"] || "";
-                  const session  = chirp.request.cookies["session"] || "";
+                  console.log(chirp.request.headers);
+                  const authJWT  = chirp.request.headers["authjwt"] || chirp.request.cookies["authjwt"] || "";
+                  const session  = chirp.request.headers["session"] || chirp.request.cookies["session"] || "";
                   if (authJWT === "" || session === "") {
+                        app.log("auth/authorize():Missing Cookies", 'info');
                         chirp.setAuthorization("", -1, 0, null, false, 'AUTH_NOAUTH');
                         return chirp;
                   }
@@ -174,7 +176,7 @@
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| ReAuthorize if expired
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        const authJWT = await app.auth.abstract.renewAuthJWT( jwtPayload.site, jwtPayload.id );
+                        const authJWT = await app.auth.abstract.renewUserJWT( jwtPayload.site, jwtPayload.id );
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| Failed Renew
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -201,7 +203,7 @@
                   //|| Level
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (jwtPayload.level < level) {
-                        app.log('auth/authorize():Level Failed', 'info');
+                        app.log(`auth/authorize(${jwtPayload.level} < ${ level }):Level Check Failed`, 'info');
                         chirp.error(403, 'AUTH_LOWPERM');
                         return chirp;
                   }

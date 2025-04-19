@@ -49,12 +49,13 @@
       //|| Export Routes
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export { default as RouteForgot }           from './routes/route.forgot';
-      export { default as RouteLogin }            from './routes/route.login';
-      export { default as RouteLogout }           from './routes/route.logout';
-      export { default as RouteMe }               from './routes/route.me';
-      export { default as RouteRegister }         from './routes/route.register';
-      export { default as RouteVerify }           from './routes/route.verify';
+      export { default as RouteForgot }               from './routes/route.forgot';
+      export { default as RouteLogin }                from './routes/route.login';
+      export { default as RouteLogout }               from './routes/route.logout';
+      export { default as RouteMe }                   from './routes/route.me';
+      export { default as RouteRegister }             from './routes/route.register';
+      export { default as RouteVerify }               from './routes/route.verify';
+      export { default as RouteValidateUsername }     from './routes/validate/route.username';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| MongoDB Plugin
@@ -101,6 +102,7 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.authorize = async(chirp: any, level : number) : Promise<Chirp> => {
+                        app.log("Authorizing : " + chirp.route, 'info');
                         chirp = await Auth.authorize(chirp, level);
                         return chirp;
                   };      

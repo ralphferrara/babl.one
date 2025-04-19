@@ -1,5 +1,5 @@
 import { describe, it, expect }           from 'vitest';
-import JWT                                from '../index.ts'; // Assuming the path is correct
+import JWT                                from '../index'; // Assuming the path is correct
 import * as crypto                        from 'crypto';
 
 describe('JWT Class', () => {
@@ -8,6 +8,7 @@ describe('JWT Class', () => {
       it('should create a valid JWT token', () => {
             // Step 1: Create a new JWT instance and set a payload
             const jwtInstance = new JWT();
+            console.log(jwtInstance);
             const payload = { foo: 'bar' };  // Example payload
             jwtInstance.setPayload(payload);
             jwtInstance.setExpires(600);  // Set expiration time (in seconds)
