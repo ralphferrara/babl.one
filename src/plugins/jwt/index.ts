@@ -13,7 +13,7 @@
       //|| Decorators
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { Plugin }                         from '@babl.one/core';
+      import Plugin                             from '../../../decorators/plugin';
       import { JWTStatuses }                    from './interfaces/types';
       export { JWTStatuses as JWTStatuses}      from './interfaces/types';
      

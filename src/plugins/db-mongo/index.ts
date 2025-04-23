@@ -15,12 +15,6 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       import { Plugin }                           from '@babl.one/core';
-
-      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Classes
-      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import app                                  from '@babl.one/core'
       
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Exports
@@ -38,6 +32,7 @@
             //|| Var
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+            public app          : any;
             public name         : string;
             public client       : MongoClient;
             public db           : Db | undefined;
@@ -48,8 +43,9 @@
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            constructor(name: string, config: any) {
+            constructor(name: string, app: any, config: any) {
                   this.name     = name;
+                  this.app      = app;
                   this.config   = config;
                   this.status   = 'INIT';
                   this.client   = {} as any;
@@ -60,17 +56,17 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async connect() {
-                  app.log(`Connecting to MongoDB [${this.name}] @ ${this.config.host}`, 'info');
+                  this.app.log(`Connecting to MongoDB [${this.name}] @ ${this.config.host}`, 'info');
                   try {
                         const uri     = `mongodb://${this.config.host}:${this.config.port}`;
                         this.client   = new MongoClient(uri);
                         await this.client.connect();
                         this.db       = this.client.db(this.config.database);
                         this.status   = 'OK';
-                        app.log(`MongoDB [${this.name}] Connected`, 'success');
+                        this.app.log(`MongoDB [${this.name}] Connected`, 'success');
                   } catch (err) {
                         this.status = 'FAIL';
-                        app.log(`MongoDB [${this.name}] Connection Failed`, 'error');
+                        this.app.log(`MongoDB [${this.name}] Connection Failed`, 'error');
                         console.error(err);
                   }
             }
@@ -82,9 +78,9 @@
             async close() {
                   try {
                         await this.client.close();
-                        app.log(`Closed MongoDB connection: ${this.name}`, 'info');
+                        this.app.log(`Closed MongoDB connection: ${this.name}`, 'info');
                   } catch (err) {
-                        app.log(`Failed to close MongoDB: ${this.name}`, 'error');
+                        this.app.log(`Failed to close MongoDB: ${this.name}`, 'error');
                   }
             }
       }
@@ -99,30 +95,17 @@
             static async init(app: any, configPath : string) {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Get the right config file
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const projectDir                                = process.cwd(); // Get the current working directory (project directory)
-                  const configFilePath                            = path.resolve(projectDir, configPath); // Resolve the absolute path relative to the project directory      
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Config
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.log("Loading configuration : " + app.path(configFilePath).abs(), 'info');
+                  app.log("Loading configuration : " + app.path(configPath).abs(), 'info');
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const instances : Map<string, MongoDBInstance> = new Map();
-                  const config    : any                        = await app.path(configFilePath).json(null);
-                  if (config === null) {
-                        if (app.path(configFilePath).exists()) {
-                              app.log(configFilePath + " : JSON is not valid!", 'error');
-                              return;
-                        }
-                  }
+                  const config    : any                        = await app.path(configPath).projectConfig();
                   
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Tie In
@@ -143,7 +126,7 @@
                               app.log(`MongoDB instance conflict: ${name} already exists`, 'error');
                               continue;
                         }
-                        const instance = new MongoDBInstance(name, config[name]);
+                        const instance = new MongoDBInstance(name, app, config[name]);
                         instances.set(name, instance);
                         await instance.connect();
                   }

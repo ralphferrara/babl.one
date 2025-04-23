@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-sockets",
-   "version": "0.0.13",
+   "version": "0.0.14",
    "description": "Handles Websocket connections",
    "type": "module",
    "main": "dist/index.js",

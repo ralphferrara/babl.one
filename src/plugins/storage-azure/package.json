@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/storage-azure",
-   "version": "0.0.14",
+   "version": "0.0.15",
    "description": "Wrapper for Microsoft Azure blob storage",
    "type": "module",
    "main": "dist/index.js",

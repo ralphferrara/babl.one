@@ -7,10 +7,44 @@
       //|| Dependencies
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
       
-      import * as crypto                  from 'crypto';
-      import TwoFactor                    from '../index';
-      import { describe, it, expect }     from 'vitest';
+      import * as crypto                      from 'crypto';
+      import TwoFactor                       from '../index';
+      import { describe, it, expect, beforeEach } from 'vitest';
+      import app                             from '@babl.one/core';
+      import type { TwoFactorActionTypes }   from '../interfaces/types';
+      import type TwoFactorConfig            from '../interfaces/twofactor.config';
 
+
+      // Mocks
+      const site       = 'example.com';
+      const identifier = 'user123';
+      const action     = 'REGISTER' satisfies TwoFactorActionTypes;
+      const secret     = 'your-secret-key';
+      const ip         = '127.0.0.1';
+
+      const mockConfig: TwoFactorConfig = {
+            intervals: {
+                  sends: 60,
+                  attempts: 60,
+                  lockedIdentifiers: 300,
+                  lockedIPs: 300,
+                  watchdog: 5
+            },
+            maximums: {
+                  sends: 3,
+                  attempts: 3,
+                  lockedIdentifiers: 3,
+                  lockedIPs: 3
+            },
+            thresholds: {
+                  sends: 25,
+                  attempts: 25,
+                  lockedIdentifiers: 40,
+                  lockedIPs: 30
+            }
+      };
+
+      
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Describe
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -18,14 +52,18 @@
       describe('TwoFactor Class', () => {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Var
+            //|| Before
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-            const site              = 'example.com';
-            const identifier        = 'user123';
-            const action            = 'REGISTER';  // or 'LOGIN', 'AUTHENTICATE'
-            const secret            = 'your-secret-key';
-
+            
+            beforeEach(() => {
+                  // Reset app.twofactor mock before each test
+                  app.twofactor = {
+                        attempts: {
+                              can: () => ({ allowed: true })
+                        }
+                  };
+            });
+      
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Valid Check
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/

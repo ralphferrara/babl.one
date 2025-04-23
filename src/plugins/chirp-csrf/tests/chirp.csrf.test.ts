@@ -34,9 +34,9 @@ describe('ChirpCSRF', () => {
             const shortConfig = { ...config, expires: 0 }; // immediate expiration
             const csrfShort = new ChirpCSRF(shortConfig);
             const token = csrfShort.generate(jwt, session);
-
+      
             await new Promise(resolve => setTimeout(resolve, 10)); // slight delay
-
+      
             const refreshed = csrfShort.checkAndRefresh(token, jwt, session);
             expect(refreshed).not.toBe(token);
             expect(typeof refreshed).toBe('string');

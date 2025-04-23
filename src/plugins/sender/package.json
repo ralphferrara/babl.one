@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender",
-   "version": "0.0.20",
+   "version": "0.0.21",
    "description": "Wrapper to add APIs for sending emails and text",
    "type": "module",
    "main": "dist/index.js",

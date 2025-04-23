@@ -14,7 +14,22 @@
       //|| Decorators
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { Plugin }                                from '@babl.one/core';
+      import  Plugin                                   from '../../../decorators/plugin';
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Interfaces
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+      
+      import HealthDataset                             from './interfaces/health.dataset';
+      import { HealthLevel}                            from './interfaces/types';
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| Class
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      export class HealthPluginClass {
+            public data         : Map<string, HealthDataset> = new Map();
+      }
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Socket Plugin
@@ -41,24 +56,35 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const config    = await app.path(configFilePath).json({});
-                  const data      : Map<string, any> = new Map();
                   let child       : ChildProcessWithoutNullStreams | null = null;
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Register tie in 
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.health = (field: string, value : string) => {
-                        data.set(field, value);
+                  app._health = new HealthPluginClass();
+                  app.health = (field: string, value : any, threatLevel : HealthLevel) => {
+                        switch(threatLevel) {
+                              case "INFO":      case 0: threatLevel = 0; break;
+                              case "WATCH":     case 1: threatLevel = 1; break;
+                              case "NORMAL":    case 2: threatLevel = 2; break;
+                              case "WARN":      case 3: threatLevel = 3; break;
+                              case "EMERGENCY": case 4: threatLevel = 4; break;
+                              default:          threatLevel = 4; break;
+                        }
+                        app._health.data.set(field, {
+                              data : value,
+                              level: threatLevel
+                        });
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Setup Write Interval
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const writeInterval = setInterval(() => {
+                  app.watchdog('health', () => {
                         const configFilePath = path.resolve(projectDir, ".health/data/data.json");
-                        app.path(configFilePath).write(JSON.stringify(data) || "{}");
+                        app.path(configFilePath).write(JSON.stringify(app._health.data) || "{}");
                   }, config.writeInterval);
 
                   
@@ -89,7 +115,7 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.defer(async () => {
-                        clearInterval(writeInterval); 
+                        app.clearWatchdog('health');
                         if (child) {
                               child.kill(); // Kill the child process when the main process exits
                               app.log('Health server process killed.', 'info');

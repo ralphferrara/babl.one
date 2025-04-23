@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql",
-   "version": "0.0.73",
+   "version": "0.0.76",
    "description": "Database Wrapper for MySQL",
    "type": "module",
    "main": "dist/index.js",
@@ -12,7 +12,7 @@
    },
    "files": [
       "dist",
-      "template.cjs",
+      "../../global/template.cjs",
       "template",
       "README.md"
    ],
@@ -33,7 +33,6 @@
       "mysql2": "^3.14.0"
    },
    "peerDependencies": {
-      "@babl.one/core": "latest",
       "@babl.one/server-router": "latest"
    }
 }

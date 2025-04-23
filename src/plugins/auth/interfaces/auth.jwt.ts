@@ -11,6 +11,7 @@
             site               : string;
             id                 : number;
             level              : number;
+            session?           : string;
             verified?          : boolean;
             message?           : string;
       }

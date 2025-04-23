@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/auth",
-   "version": "0.0.63",
+   "version": "0.0.66",
    "description": "Handle the Authentication and Authorization of the Babl.one system",
    "type": "module",
    "main": "./dist/index.js",
@@ -25,9 +25,8 @@
       "postinstall": "node template.cjs && node init.cjs"
    },
    "peerDependencies": {
-      "@babl.one/core": "latest",
       "@babl.one/jwt": "latest",
-      "@babl.one/server-router": "^0.0.34",
+      "@babl.one/server-router": "latest",
       "@babl.one/twofactor": "latest",
       "@babl.one/validate": "latest"
    },

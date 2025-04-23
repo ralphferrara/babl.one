@@ -210,7 +210,7 @@
                   //|| Update the Authorization JWT and Session
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (this.updatedAuth.authJWT !== '' || this.updatedAuth.session !== '') { 
-                        this.response.setCookie('authJWT', this.updatedAuth.authJWT || '', { path: '/', maxAge: 60 * 60 * 24 * 7, httpOnly: true });
+                        this.response.setCookie('authjwt', this.updatedAuth.authJWT || '', { path: '/', maxAge: 60 * 60 * 24 * 7, httpOnly: true });
                         this.response.setCookie('session', this.updatedAuth.session || '', { path: '/', maxAge: 60 * 60 * 24 * 7, httpOnly: true });
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

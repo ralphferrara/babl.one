@@ -21,6 +21,7 @@
                   //|| Config Object
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+                  private app             : any;
                   private config          : AuthConfig;
                   private attempts        : AuthAttempt[] = [];
 
@@ -28,7 +29,7 @@
                   //|| Constructor
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  constructor(config: AuthConfig) {
+                  constructor(app : any, config: AuthConfig) {
                         this.config = config;
                   }
 

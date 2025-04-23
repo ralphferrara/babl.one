@@ -33,7 +33,8 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             public name         : string;
-            public client         : any;
+            public app          : any;
+            public client       : any;
             public status       : string;
             public config       : any;
 
@@ -41,8 +42,9 @@
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            constructor(name: string, config: any) {
+            constructor(name: string, appGlobal : any, config: any) {
                   this.name         = name;
+                  this.app          = appGlobal;
                   this.status       = 'INIT';
                   this.config       = config;            
                   this.client         = {};
@@ -53,7 +55,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async connect() {
-                  app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
+                  this.app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
 
                   try {
                         this.client = createPool({
@@ -68,10 +70,10 @@
                         conn.ping();
                         conn.release();
                         this.status = 'OK';
-                        app.log(`MySQL [${this.name}] Connected`, 'success');
+                        this.app.log(`MySQL [${this.name}] Connected`, 'success');
                   } catch (err) {
                         this.status = 'FAIL';
-                        app.log(`MySQL [${this.name}] Connection Failed`, 'error');
+                        this.app.log(`MySQL [${this.name}] Connection Failed`, 'error');
                         console.error(err);
                   }
             }
@@ -100,7 +102,7 @@
                         result.status = 'OK';
                   } catch (err) {
                         result.error = err;
-                        app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
+                        this.app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
                   }
 
                   return result;
@@ -113,7 +115,7 @@
 
             async close(): Promise<void> {
                   if (this.client?.end) await this.client.end();
-                  app.log(`Closed MySQL connection: ${this.name}`, 'info');
+                  this.app.log(`Closed MySQL connection: ${this.name}`, 'info');
             }
 
       }
@@ -132,30 +134,17 @@
             static async init(app: any, configPath : string) {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Get the right config file
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const projectDir                                = process.cwd(); // Get the current working directory (project directory)
-                  const configFilePath                            = path.resolve(projectDir, configPath); // Resolve the absolute path relative to the project directory      
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Config
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.log("Loading configuration : " + app.path(configFilePath).abs(), 'info');
+                  app.log("Loading configuration : " + app.path(configPath).abs(), 'info');
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   const instances : Map<string, MySQLInstance> = new Map();
-                  const config    : any                        = await app.path(configFilePath).json(null);
-                  if (config === null) {
-                        if (app.path(configFilePath).exists()) {
-                              app.log(configFilePath + " : JSON is not valid!", 'error');
-                              return;
-                        }
-                  }
+                  const config    : any                        = await app.path(configPath).projectConfig(null);
                   
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Attach to App
@@ -174,7 +163,7 @@
                               app.log(`MySQL Conflict: Duplicate name '${name}'`, 'warn');
                               continue;
                         }
-                        const instance = new MySQLInstance(name, config[name]);
+                        const instance = new MySQLInstance(name, app, config[name]);
                         instances.set(name, instance);
                         await instance.connect();
                   }

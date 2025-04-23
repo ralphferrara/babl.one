@@ -15,13 +15,13 @@
       //|| Project Root
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../');
+      const projectRoot = process.cwd();
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Path Utility
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export default function Path(filepath: string) {
+      export function Path(filepath: string) {
 
             const fullPath = path.join(projectRoot, filepath);
 
@@ -235,10 +235,12 @@
                         //|| Try Loading
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         try {                         
-                              data = await fs.readFile(this.abs());
+                              data = await fs.readFile(configFilePath);
                               if (!data) throw new Error(`Config file is empty or malformed: ${configFilePath}`);
                         } catch (err) {
-                              throw new Error(`Config file is empty or malformed: ${configFilePath}`);
+                              console.error(`Config file is empty: ${configFilePath}`);
+                              console.error(err);
+                              throw new Error();
                         }
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| Try Parsing

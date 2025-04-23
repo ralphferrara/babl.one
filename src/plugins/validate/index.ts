@@ -62,9 +62,11 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             static password( value: string | undefined): boolean {
-                  var passwordRegex = /^.{6,}$/;
-                  if (value !== undefined && passwordRegex.test(value)) return true;
-                  return false;            
+                  var passwordRegex = /^.{8,}$/;
+                  if (value === undefined || !passwordRegex.test(value)) return false;
+                  const byteLength = Buffer.byteLength(value, 'utf8');
+                  if (byteLength > 72) return false;
+                  return true;            
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

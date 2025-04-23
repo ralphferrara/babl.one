@@ -1,0 +1,22 @@
+{
+      "intervals": {
+            "sends"               : 900,
+            "attempts"            : 300,
+            "lockedIdentifiers"   : 1800,
+            "lockedIPs"           : 3600,
+            "purge"               : 10,
+            "health"              : 60
+      },
+      "maximums": {
+            "sends"               : 3,
+            "attempts"            : 5,
+            "lockedIdentifiers"   : 5,
+            "lockedIPs"           : 10
+      },
+      "thresholds": {
+            "sends"               : 25,
+            "attempts"            : 25,
+            "lockedIdentifiers"   : 40,
+            "lockedIPs"           : 30
+      }
+}

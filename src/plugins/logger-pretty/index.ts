@@ -1,16 +1,102 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
 //|| babl.one Plugin :: Console Pretty Logger
-//|| Replaces app.log with colorized and structured console output
+//|| Replaces app.log with colorized and structured console output using a Logger class
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Decorator
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import { Plugin }                           from '@babl.one/core';
+      import app, { Plugin }                           from '../core/index';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| ConsolePretty
+      //|| Logger Class
+      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+      class Logger {
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Color Definitions
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            private colors: { [key: string]: string } = {
+                  reset      : "\x1b[0m",
+                  blink      : "\x1b[5m",
+                  fgBlack    : "\x1b[30m",
+                  fgRed      : "\x1b[31m",
+                  fgGreen    : "\x1b[32m",
+                  fgGray     : "\x1b[90m",
+                  fgYellow   : "\x1b[33m",
+                  fgBlue     : "\x1b[34m",
+                  fgMagenta  : "\x1b[35m",
+                  fgCyan     : "\x1b[36m",
+                  fgWhite    : "\x1b[37m",
+                  bgBlack    : "\x1b[40m",
+                  bgRed      : "\x1b[41m",
+                  bgYellow   : "\x1b[43m",
+                  bgBlue     : "\x1b[44m",
+                  bgMagenta  : "\x1b[45m",
+                  bgCyan     : "\x1b[46m",
+                  bgWhite    : "\x1b[47m"
+            };
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Wrap Line with PID
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            private wrap(line: string): string {
+                  return this.colors.reset + "     " + line + this.colors.reset + ` [PID:${process.pid}]`;
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Echo Output
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            private echo(message: string | string[], tag: string, color: string): void {
+                  const lines = (typeof message === 'string') ? [message] : message;
+                  for (const line of lines) {
+                        const output = `${this.colors[color]}[${tag}] - ${new Date().toLocaleTimeString()} - ${line}`;
+                        console.log(this.wrap(output));
+                  }
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Headline Output
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            private head(message: string | string[], bgColor: string = 'bgBlue'): void {
+                  const width = 120;
+                  const lines = (typeof message === 'string') ? [message] : message;
+                  console.log('');
+                  for (const line of lines) {
+                        const indent = '  ' + line + ' '.padEnd(width - line.length - 2);
+                        console.log(this.colors[bgColor] + this.colors.fgWhite + indent + this.colors.reset);
+                  }
+                  console.log('');
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Public Log Method
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public log(message: string | string[], type: string = 'log'): void {
+                  switch (type) {
+                        case 'info':      return this.echo(message, 'INFO', 'fgGray');
+                        case 'warn':      return this.echo(message, 'WARN', 'fgYellow');
+                        case 'error':     return this.echo(message, 'ERR ', 'fgRed');
+                        case 'success':   return this.echo(message, '   ►', 'fgBlue');
+                        case 'debug':     return this.echo(message, 'DBUG', 'fgGreen');
+                        case 'timer':     return this.echo(message, '   ∞', 'fgCyan');
+                        case 'head':      return this.head(message, 'bgBlue');
+                        case 'complete':  return this.head(message, 'bgYellow');
+                        case 'break':     this.head(message, 'bgRed'); throw new Error(message.toString());
+                        default:          return this.echo(message, 'LOG ', 'fgWhite');
+                  }
+            }
+      }
+
+      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+      //|| ConsolePretty Plugin
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       @Plugin('logger-pretty')
@@ -20,101 +106,17 @@
             //|| Init
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            static async init(app: any) {
+            static async init() {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Clear Console
+                  //|| Register Logger Class
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  console.clear();
+                  const pretty = new Logger();
+                  app.log      = (message: string | string[], type: string = 'log') => pretty.log(message, type);
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Colors List
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const colors: { [key: string]: string } = {
-                        reset: "\x1b[0m",
-                        blink: "\x1b[5m",
-                        fgBlack: "\x1b[30m",
-                        fgRed: "\x1b[31m",
-                        fgGreen: "\x1b[32m",
-                        fgGray: "\x1b[90m",
-                        fgYellow: "\x1b[33m",
-                        fgBlue: "\x1b[34m",
-                        fgMagenta: "\x1b[35m",
-                        fgCyan: "\x1b[36m",
-                        fgWhite: "\x1b[37m",
-                        bgBlack: "\x1b[40m",
-                        bgRed: "\x1b[41m",
-                        bgYellow: "\x1b[43m",
-                        bgBlue: "\x1b[44m",
-                        bgMagenta: "\x1b[45m",
-                        bgCyan: "\x1b[46m",
-                        bgWhite: "\x1b[47m"
-                  };
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Wrap
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const wrap = (line: string) => {
-                        return colors.reset + "     " + line + colors.reset + ` [PID:${process.pid}]`;
-                  }
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Echo
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const echo = (message: string | string[], tag: string, color: string) => {
-                        const lines = (typeof message === 'string') ? [message] : message;
-                        for (const line of lines) {
-                              const output = `${colors[color]}[${tag}] - ${new Date().toLocaleTimeString()} - ${line}`;
-                              console.log(wrap(output));
-                        }
-                  }
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Head
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const head = (message: string | string[], bgColor: string = 'bgBlue') => {
-                        const width = 120;
-                        const lines = (typeof message === 'string') ? [message] : message;
-                        console.log('');
-                        for (const line of lines) {
-                              const indent = '  ' + line + ' '.padEnd(width - line.length - 2);
-                              console.log(colors[bgColor] + colors.fgWhite + indent + colors.reset);
-                        }
-                        console.log('');
-                  }
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Logger
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const logger = (message: string | string[], type: string = 'log') => {
-                        switch (type) {
-                              case 'info':      return echo(message, 'INFO', 'fgGray');
-                              case 'warn':      return echo(message, 'WARN', 'fgYellow');
-                              case 'error':     return echo(message, 'ERR ', 'fgRed');
-                              case 'success':   return echo(message, '   ►', 'fgBlue');
-                              case 'debug':     return echo(message, 'DBUG', 'fgGreen');
-                              case 'timer':     return echo(message, '   ∞', 'fgCyan');
-                              case 'head':      return head(message, 'bgBlue');
-                              case 'complete':  return head(message, 'bgYellow');
-                              case 'break':     head(message, 'bgRed'); throw new Error(message.toString());
-                              default:          return echo(message, 'LOG ', 'fgWhite');
-                        }
-                  };
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Register Logger
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  app.log = logger;
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Boast
+                  //|| Confirm
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.log("Console Pretty Logger Installed", 'head');

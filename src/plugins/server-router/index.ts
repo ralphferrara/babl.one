@@ -163,7 +163,7 @@
                   const fw                = new FileWatcher(absPath);
                   fw.recursive            = true;
                   fw.extMatch             = '.ts';
-                  fw.watch                = process.env.NODE_ENV !== 'production';
+                  fw.watch                = false;
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Route Interface

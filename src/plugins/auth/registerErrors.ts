@@ -14,7 +14,7 @@
       app.registerError('AUTH_LGNMID',    'Identifier is missing');
       app.registerError('AUTH_LGNMPW',    'Password is missing');
       app.registerError('AUTH_LNGTMY',    'Too many login attempts');
-      app.registerError('AUTH_FAILED',    'Password Mismatch');
+      app.registerError('AUTH_FAILED',    'Account not found or Password Mismatch');
       app.registerError('AUTH_DELETED',   'Account has been deleted');
       app.registerError('AUTH_BANNED',    'Account has been banned');
       app.registerError('AUTH_LOCKED',    'Account is locked');
@@ -41,3 +41,8 @@
       app.registerError('AUTH_NOTOLD',    'Sorry, you are not old enough to access this site');
       app.registerError('LOGGEDOUT',      'You have been logged out');
       app.registerError('MISS_AGE',       'Missing parameter: age');
+      app.registerError('AUTH_COMGEN',    'Missing parameter : gender');
+      app.registerError('AUTH_COMUSR',    'Missing parameter : username');
+      app.registerError('AUTH_COMPSW',    'Missing parameter : password');
+      app.registerError('AUTH_COMDOB',    'Missing parameter : birthday');
+      app.registerError('AUTH_PWUPFL',    'There was an error updating your password');

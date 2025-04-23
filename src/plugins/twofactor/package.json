@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/twofactor",
-   "version": "0.0.14",
+   "version": "0.0.19",
    "description": "Wrapper for TwoFactor Authentication",
    "type": "module",
    "main": "dist/index.js",
@@ -12,13 +12,16 @@
    },
    "files": [
       "dist",
+      "template.cjs",
+      "template",
       "registerErrors.mjs",
       "README.md"
    ],
    "scripts": {
       "dev": "tsx index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
-      "release": "node release.mjs"
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\twofactor\\dist\"",
+      "release": "node release.mjs",
+      "postinstall": "node template.cjs"
    },
    "devDependencies": {
       "tsup": "^8.4.0",

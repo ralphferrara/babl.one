@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/server-router",
-   "version": "0.0.36",
+   "version": "0.0.38",
    "description": "Handles Websocket and HTTP routing",
    "type": "module",
    "main": "dist/index.js",
@@ -29,8 +29,5 @@
    "dependencies": {
       "cookie": "^1.0.2",
       "ws": "^8.18.1"
-   },
-   "peerDependencies": {
-      "@babl.one/core": "latest"
    }
 }

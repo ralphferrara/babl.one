@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/client-chirp",
-   "version": "0.0.23",
+   "version": "0.0.30",
    "description": "A reusable browser-side communications client for /plugins/server-http",
    "main": "dist/index.cjs",
    "module": "dist/index.mjs",
@@ -13,7 +13,7 @@
    },
    "scripts": {
       "dev": "tsup index.ts --watch",
-      "build": "tsup index.ts --format esm,cjs --dts && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\client-chirp\\dist\"",
+      "build": "tsup index.ts --format esm,cjs --dts && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\client-chirp\\dist\"",
       "release": "node release.mjs"
    },
    "keywords": [

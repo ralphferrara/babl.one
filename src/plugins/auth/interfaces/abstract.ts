@@ -26,7 +26,7 @@
             //|| User
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            usernameExists(site: string, username: string): Promise<boolean>;
+            usernameExists(site: string, username: string, user : number): Promise<boolean>;
             createUserAccount(site: string, identifier: string): Promise<number | undefined>;
             updateHeartbeat(site: string, user: number, session: string): Promise<void>;
             checkUser(site: string, identifier: string): Promise<UserCheckResponse>;

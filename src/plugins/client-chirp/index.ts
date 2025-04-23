@@ -9,9 +9,10 @@
 
       import ResponseDataPayload          from "../server-router/interfaces/response.data.payload";
       import { MockOptions }              from "./interfaces/mock.options";
+      import { ChirpStatuses }            from "./interfaces/types";
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-      //|| Loader
+      //|| Class
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       export default class Chirp {
@@ -30,6 +31,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
             
             public method           : string    = "POST";
+            public contentType      : string    = "application/json";
             public secure           : boolean   = true;
             public server           : string    = "localhost:3000";
             public route            : string    = "";
@@ -56,8 +58,7 @@
             //|| State
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            public rawResponse      : string = "";
-            public status           : "PENDING" | "SUCCESS" | "ERROR" = "PENDING";
+            public status           : ChirpStatuses = "PENDING";
             public http             : number = 100;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -66,6 +67,12 @@
 
             public authJWT          : string    = "";
             public session          : string    = "";         
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Assignable Statuses
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public onState          : (status: ChirpStatuses, response : ResponseDataPayload ) => void = () => { return; };
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
             //|| Handle Mocking Responses
@@ -86,6 +93,14 @@
                   this.route              = route;
                   this.requestData        = data;
                   this.domain             = this.hostname();
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Set Payload
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public setData( data: { [key: string]: object | boolean | string | number | null | undefined } = {} ) {
+                  this.requestData        = data;
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -209,7 +224,7 @@
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Headers
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.headers.set("Content-Type", "application/json");
+                  this.headers.set("Content-Type", this.contentType);   
                   this.headers.set("authJWT",      this.authJWT);
                   this.headers.set("session",      this.session);
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -221,8 +236,9 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (this.mockMode) {
                         return new Promise((resolve) => {
+                              this.updateStatus("POLLING");
                               setTimeout(() => {
-                                    this.status                   = (this.responsePayload.status === 200) ? "SUCCESS" : "ERROR";
+                                    this.updateStatus((this.responsePayload.status === 200) ? "SUCCESS" : "ERROR");
                                     this.http                     = this.responsePayload.status;
                                     this.responsePayload.message  = `MOCK[${this.responsePayload.message}]`;
                                     this.debugPayload();
@@ -231,28 +247,39 @@
                         });
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+                  //|| In case we're sending a form
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  const plainObj                            = this.requestData;
+                  const formDataObj: Record<string, string> = {};                  
+                  for (const key in plainObj) {
+                        if (Object.prototype.hasOwnProperty.call(plainObj, key)) {
+                              const val = plainObj[key];
+                              if (val !== null && val !== undefined) formDataObj[key] = String(val);
+                        }
+                  }                  
+                  const encodedBody = new URLSearchParams(formDataObj).toString();                
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Fetch
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   let response: Response;
                   try {
+                        this.updateStatus("POLLING");
                         response = await fetch(this.url, {
                               method      : this.method,
                               headers     : this.headers,
-                              body        : this.method === "POST" ? JSON.stringify(this.requestData) : undefined
+                              body        : this.method !== "POST" ? undefined : (this.contentType === "application/x-www-form-urlencoded") ? encodedBody : JSON.stringify(this.requestData)
                         });
                         this.setCSRF();
                   } catch (error) {
                         console.error("CHIRP FETCH ERROR:");
+                        console.log(this.requestData);
                         console.log(error);
+                        console.log("||=================== CHIRP END =======================||");
                         this.responsePayload.status                  = 501;
                         this.responsePayload.message                 = "CHP_UNKNOWN";
                         this.debugPayload();
                         return;
                   }
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
-                  //|| Relay Bypass
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.rawResponse = await response.text();
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Parse JSON
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -261,12 +288,12 @@
                         responseJSON = await response.json();
                   } catch (error) {
                         console.error("CHIRP : INVALID JSON RESPONSE:");
-                        console.log(response);
+                        console.log(error);
                         this.responsePayload.status                  = response.status;
                         this.responsePayload.message                 = "CHP_BAD_JSON";
                         this.responsePayload.headers                 = this.makeHeaders(response.headers);
                         this.responsePayload.route                   = this.route;
-                        this.status                                  = "ERROR";
+                        this.updateStatus("ERROR");
                         this.http                                    = response.status;
                         this.setCSRF();
                         this.debugPayload();
@@ -288,13 +315,22 @@
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Cone
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.status          = response.status === 200 ? "SUCCESS" : "ERROR";
+                  this.updateStatus(response.status === 200 ? "SUCCESS" : "ERROR");
                   this.http            = 200;
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
                   //|| Done
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   this.debugPayload();
                   return;
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
+            //|| Update State
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public updateStatus( state : ChirpStatuses ) {
+                  this.status = state;
+                  if (this.onState) return this.onState(this.status, this.responsePayload);
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
@@ -307,7 +343,6 @@
                   if (!csrf) return;
                   return csrf;
             }
-
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 
             //|| Set CSRF token on request

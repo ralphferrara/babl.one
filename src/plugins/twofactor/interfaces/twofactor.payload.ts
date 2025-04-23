@@ -16,6 +16,8 @@
       export default interface TwoFactorPayload {
             site              : string;
             action            : TwoFactorActionTypes;
+            attempts          : number;
+            sends             : number;
             identifier        : string;
             salt              : string;    
             hash              : string;  
