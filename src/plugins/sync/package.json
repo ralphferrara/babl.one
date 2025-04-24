@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sync",
-   "version": "0.0.1",
+   "version": "0.0.2",
    "description": "Base plugin for the sync server",
    "type": "module",
    "main": "./dist/index.js",

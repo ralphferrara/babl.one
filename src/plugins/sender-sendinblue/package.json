@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/sender-sendinblue",
-   "version": "0.0.13",
+   "version": "0.0.14",
    "description": "Wrapper for SendInBlue send emails requires @babl.one/sender",
    "type": "module",
    "main": "dist/index.js",

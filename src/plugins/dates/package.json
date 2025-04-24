@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/dates",
-   "version": "0.0.2",
+   "version": "0.0.3",
    "description": "Some useful functions for dates",
    "type": "module",
    "main": "./dist/index.js",

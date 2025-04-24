@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/locales",
-   "version": "0.0.2",
+   "version": "0.0.3",
    "description": "Wrapper to add language support to babl.one",
    "type": "module",
    "main": "dist/index.js",

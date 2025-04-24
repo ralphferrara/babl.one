@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/logger-pretty",
-   "version": "0.0.57",
+   "version": "0.0.58",
    "description": "Our super-cool logger that makes everything look pretty",
    "type": "module",
    "main": "./dist/index.js",
