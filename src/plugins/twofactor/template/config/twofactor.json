@@ -1,4 +1,5 @@
 {
+      "secret"                    : "__INSERT_SECRET_HERE__",
       "intervals": {
             "sends"               : 900,
             "attempts"            : 300,

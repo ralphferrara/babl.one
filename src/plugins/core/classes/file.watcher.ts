@@ -33,7 +33,7 @@
       //|| FileWatcher
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
       
-      export class FileWatcher {
+      export default class FileWatcher {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Var
@@ -45,7 +45,7 @@
             private dir             : string;
             public recursive        : boolean;
             public fileMatch        : string | false;
-            public extMatch         : string | false;
+            public extMatch         : string | string[] | false;
             public watch            : boolean;
             public callback         : (structure: FileWatcherObject[]) => void | Promise<void>;
 
@@ -102,10 +102,15 @@
                               /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                               //|| Match Ext
                               //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              let ext = path.extname(relative).slice(1).replace('.', '');
-                              let extMatch = (typeof this.extMatch === 'string') ? this.extMatch.replace('.', '') : '';
-
-                              if ((this.extMatch === false || ext === extMatch) && ((isMatch && !stats.isDirectory() && item === this.fileMatch) || !isMatch)) {
+                              
+                              const ext = path.extname(relative).slice(1); // 'ts', 'js', etc.
+                              const extMatch = this.extMatch;                                                            
+                              const matchExt =
+                                    extMatch === false ||
+                                    (typeof extMatch === 'string' && ext === extMatch.replace('.', '')) ||
+                                    (Array.isArray(extMatch) && extMatch.map(e => e.replace('.', '')).includes(ext));
+                        
+                              if (matchExt && ((isMatch && !stats.isDirectory() && item === this.fileMatch) || !isMatch)) {
                                     /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                                     //|| Match
                                     //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/

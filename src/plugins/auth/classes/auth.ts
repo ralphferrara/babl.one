@@ -13,8 +13,8 @@
       //|| Packages
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/    
 
-      import { Chirp }                     from '@babl.one/server-router';
-      import { PageLevel }                 from '@babl.one/server-router';
+      import app                           from '@babl.one/core';
+      import { Chirp, PageLevel }          from '@babl.one/server-router';
       import Validate                      from '@babl.one/validate';
       import JWT                           from '@babl.one/jwt';
 
@@ -28,34 +28,24 @@
       import { AuthJWT }                   from '../interfaces/auth.jwt';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Classes
-      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import { AuthAttempts }              from './attempts';
-
-      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Class
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/    
 
-      export class Auth {
+      export default class Auth {
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Config Object
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/    
 
             private config    : AuthConfig;
-            private app       : any; 
             public abstract   : AbstractAuthClass | null = null;
-            public attempts   : AuthAttempts;
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/    
 
-            constructor( app : any, config : any ) {
-                  this.app          = app;
+            constructor( config : any ) {
                   this.config       = config;
-                  this.attempts     = new AuthAttempts(app, config);
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -156,7 +146,9 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/    
 
             async authorize( chirp: Chirp, level : number ) : Promise<Chirp> {
-                  this.app.log('auth/authorize():headers', 'info');
+                  app.log('auth/authorize():headers', 'info');
+                  this.checkAbstract();
+                  if (this.abstract === null) throw new Error('AbstractAuth not set. Please set the AbstractAuth with this.appauth.setAbstract(new AuthAbstract()) before using this class.');
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Load and Check
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -164,7 +156,7 @@
                   const authJWT  = chirp.request.headers["authjwt"] || chirp.request.cookies["authjwt"] || "";
                   const session  = chirp.request.headers["session"] || chirp.request.cookies["session"] || "";
                   if (authJWT === "" || session === "") {
-                        this.app.log("auth/authorize():Missing Cookies", 'info');
+                        app.log("auth/authorize():Missing Cookies", 'info');
                         chirp.setAuthorization("", -1, 0, null, false, 'AUTH_NOAUTH');
                         return chirp;
                   }
@@ -172,19 +164,19 @@
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Parse JWT
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.app.log('auth/authorize():JWT', 'info');
+                  app.log('auth/authorize():JWT', 'info');
                   let updatedAuth   = false;
-                  let jwt           = new JWT(authJWT, this.app.auth.config.secretJWT);
+                  let jwt           = new JWT(authJWT, this.config.secretJWT);
                   let jwtPayload    = jwt.payload as AuthJWT;
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| ReAuthorize if expired
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (jwt.status === 'EXPIRED') {
-                        this.app.log('auth/authorize():JWT Expired', 'info');
+                        app.log('auth/authorize():JWT Expired', 'info');
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| ReAuthorize if expired
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                        const authJWT = await this.app.auth.abstract.renewUserJWT( jwtPayload.site, jwtPayload.id );
+                        const authJWT = await this.abstract.renewUserJWT( jwtPayload.site, jwtPayload.id );
                         /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                         //|| Failed Renew
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -196,14 +188,14 @@
                         //|| Reload the new JWT
                         //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                         updatedAuth   = true;
-                        jwt           = new JWT(authJWT, this.app.auth.config.secretJWT);
+                        jwt           = new JWT(authJWT, this.config.secretJWT);
                         jwtPayload    = jwt.payload as AuthJWT;
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| If JWT can't be renewed
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (jwt.status !== 'VALID') {
-                        this.app.log('auth/authorize():JWT INVALID:' + jwt.status, 'info');
+                        app.log('auth/authorize():JWT INVALID:' + jwt.status, 'info');
                         chirp.setAuthorization(jwtPayload.site, -1, 0, null, false, 'AUTH_INVJWT');
                         return chirp;
                   }
@@ -211,17 +203,18 @@
                   //|| Level
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   if (jwtPayload.level < level) {
-                        this.app.log(`auth/authorize(${jwtPayload.level} < ${ level }):Level Check Failed`, 'info');
+                        app.log(`auth/authorize(${jwtPayload.level} < ${ level }):Level Check Failed`, 'info');
                         chirp.error(403, 'AUTH_LOWPERM');
                         return chirp;
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Check if Session Exists still 
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  this.app.log('auth/authorize():Check Session', 'info');                  
-                  const userId = await this.app.auth.abstract.getSessionUserId( jwtPayload.site, session );
+                  app.log('auth/authorize():Check Session', 'info');                  
+                  if (!this.abstract || !this.abstract.getSessionUserId) throw new Error('AbstractAuth not set. Please set the AbstractAuth with app.auth.setAbstract(new AuthAbstract()) before using this class.');
+                  const userId = await this.abstract.getSessionUserId( jwtPayload.site, session );
                   if (!userId) {
-                        this.app.log('auth/authorize():Missing Sesssion', 'info');                  
+                        app.log('auth/authorize():Missing Sesssion', 'info');                  
                         chirp.setAuthorization(jwtPayload.site, -1, 0, null, false, 'AUTH_SEXPIRED');
                         return chirp;
                   }                        

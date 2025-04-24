@@ -1,9 +1,9 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| babl.one :: .interfaces/plugin.ts
-//|| Interfaces for Plugins
+//|| babl.one :: .interfaces/plugin.interface.ts
+//|| General Implmentation for Plugins
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export default interface PluginInterface {
+      export interface PluginImplementation {
             type              : string;
             identifier        : string;
             configFile?       : string;

@@ -34,11 +34,8 @@
                   //|| Constructor
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  constructor(app : any, config : TwoFactorConfig) {
+                  constructor(config : TwoFactorConfig) {
                         this.config             = config;
-                        console.log(config);
-                        app.watchdog('twofactor.health',   () => this.health(), config.intervals.health * 1000);
-                        app.watchdog('twofactor.attempts', () => this.purge(), config.intervals.purge * 1000);
                   }
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-|| 

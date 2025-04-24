@@ -13,14 +13,15 @@
       //|| TwoFactor
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      app.registerError('TF_EXPIRED',     'Two Factor code expired');
-      app.registerError('TF_INVALID',     'Two Factor JWT was invalid');
-      app.registerError('TF_INVHASH',     'Invalid Hash');
-      app.registerError('TF_HSHMISS',     'Hash does not match');
-      app.registerError('TF_LIMIT',       'Too many attempts');
-      app.registerError('TF_LOCKID',      'Identifier is locked');
-      app.registerError('TF_LOCKIP',      'IP is locked');
-      app.registerError('TF_RATEID',      'Identifier is rate limited');
-      app.registerError('TF_RATEIP',      'IP is rate limited');      
+      app.errors.set('TF_EXPIRED',     'Two Factor code expired');
+      app.errors.set('TF_INVALID',     'Two Factor JWT was invalid');
+      app.errors.set('TF_INVHASH',     'Invalid Hash');
+      app.errors.set('TF_HSHMISS',     'Hash does not match');
+      app.errors.set('TF_LIMIT',       'Too many attempts');
+      app.errors.set('TF_LOCKID',      'Identifier is locked');
+      app.errors.set('TF_LOCKIP',      'IP is locked');
+      app.errors.set('TF_RATEID',      'Identifier is rate limited');
+      app.errors.set('TF_RATEIP',      'IP is rate limited');
+      
 
       

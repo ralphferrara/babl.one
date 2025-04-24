@@ -33,7 +33,6 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             public name         : string;
-            public app          : any;
             public client       : any;
             public status       : string;
             public config       : any;
@@ -42,9 +41,8 @@
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            constructor(name: string, appGlobal : any, config: any) {
+            constructor(name : string, config: any) {
                   this.name         = name;
-                  this.app          = appGlobal;
                   this.status       = 'INIT';
                   this.config       = config;            
                   this.client         = {};
@@ -55,8 +53,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async connect() {
-                  this.app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
-
+                  app.log(`Connecting to MySQL [${this.name}] @ ${this.config.host}`, 'info');
                   try {
                         this.client = createPool({
                               host                : this.config.host,
@@ -70,10 +67,10 @@
                         conn.ping();
                         conn.release();
                         this.status = 'OK';
-                        this.app.log(`MySQL [${this.name}] Connected`, 'success');
+                        app.log(`MySQL [${this.name}] Connected`, 'success');
                   } catch (err) {
                         this.status = 'FAIL';
-                        this.app.log(`MySQL [${this.name}] Connection Failed`, 'error');
+                        app.log(`MySQL [${this.name}] Connection Failed`, 'error');
                         console.error(err);
                   }
             }
@@ -102,7 +99,7 @@
                         result.status = 'OK';
                   } catch (err) {
                         result.error = err;
-                        this.app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
+                        app.log(`MySQL Query Error [${this.name}] :: ${sql}`, 'error');
                   }
 
                   return result;
@@ -115,7 +112,7 @@
 
             async close(): Promise<void> {
                   if (this.client?.end) await this.client.end();
-                  this.app.log(`Closed MySQL connection: ${this.name}`, 'info');
+                  app.log(`Closed MySQL connection: ${this.name}`, 'info');
             }
 
       }
@@ -131,41 +128,46 @@
             //|| Init
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            static async init(app: any, configPath : string) {
+            static async init(configPath : string) {
+
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Const
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+                  const SECTION_DATABASES = 'databases';
+                  const instanceName = (name: string) => { return `mysql.${name}`; }
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Config
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.log("Loading configuration : " + app.path(configPath).abs(), 'info');
+                  app.log("Loading configuration : " + configPath, 'info');
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const instances : Map<string, MySQLInstance> = new Map();
-                  const config    : any                        = await app.path(configPath).projectConfig(null);
-                  
+                  await app.config.json('mysql', configPath);
+
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Attach to App
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.mysql = (name: string = 'default') => {
-                        return instances.get(name);
+                        return app.global(SECTION_DATABASES, instanceName(name));
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Load Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  for (const name in config) {
-                        if (instances.has(name)) {
+                  for (const name in app.config(SECTION_DATABASES)) {
+                        if (app.global(SECTION_DATABASES, instanceName(name))) {
                               app.log(`MySQL Conflict: Duplicate name '${name}'`, 'warn');
-                              continue;
+                              throw new Error(`MySQL Conflict: Duplicate name '${name}'`);
                         }
-                        const instance = new MySQLInstance(name, app, config[name]);
-                        instances.set(name, instance);
-                        await instance.connect();
+                        app.global.set(SECTION_DATABASES, instanceName(name), new MySQLInstance(name, app.config(SECTION_DATABASES)[instanceName(name)]));
+                        await app.global(SECTION_DATABASES, instanceName(name)).connect();
                   }
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -173,9 +175,9 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.defer(async () => {
-                        for (const [name, instance] of instances) {
+                        for (const name in app.config(SECTION_DATABASES)) {
                               try {
-                                    await instance.close();
+                                    await app.global(SECTION_DATABASES, instanceName(name)).close();
                               } catch (err) {
                                     app.log(`Failed to close MySQL: ${name}`, 'error');
                               }

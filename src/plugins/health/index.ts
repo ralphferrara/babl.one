@@ -82,7 +82,7 @@
                   //|| Setup Write Interval
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.watchdog('health', () => {
+                  app.watchdogs.set('health', () => {
                         const configFilePath = path.resolve(projectDir, ".health/data/data.json");
                         app.path(configFilePath).write(JSON.stringify(app._health.data) || "{}");
                   }, config.writeInterval);

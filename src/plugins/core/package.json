@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/core",
-   "version": "3.2.59",
+   "version": "4.0.3",
    "description": "Bootstrap kernel for the babl.one framework",
    "type": "module",
    "main": "./dist/index.js",

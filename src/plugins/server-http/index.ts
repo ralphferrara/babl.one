@@ -15,7 +15,7 @@
       //|| Core
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app, { Plugin }                                      from '../core/index';
+      import app, { Plugin }                                      from '@babl.one/core';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Utilities
@@ -211,41 +211,35 @@
             static async init(configPath : string) {
 
                   app.log("Plugin : server-http :: init()", 'info');
-
-                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Setup
-                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  const projectDir                                = process.cwd(); // Get the current working directory (project directory)
-                  const configFilePath                            = path.resolve(projectDir, configPath); // Resolve the absolute path relative to the project directory      
-                  const config    : any                           = await app.path(configFilePath).json({});
-                  const instances : Map<string, HTTPInstance>     = new Map();
+                  const SECTION_HTTP = 'http';
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Config
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.log("Loading configuration : " + app.path(configPath).abs(), 'info');
+                  console.log(app.config);
+                  await app.config.json(SECTION_HTTP, configPath);
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Create App tie in
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.https = (name: string = 'default') => {
-                        return instances.get(name);
+                  app.http = (name: string = 'default') => {
+                        return app.global(SECTION_HTTP, name);
                   };
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Createa Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  for (const name in config) {
-                        if (instances.has(name)) {
+                  for (const name in app.config(SECTION_HTTP)) {
+                        if (app.global(SECTION_HTTP, name)) {
                               app.log(`HTTP instance conflict: ${name}`, 'error');
                               continue;
                         }
-                        const instance = new HTTPInstance(name, config[name]);
-                        instances.set(name, instance);
+                        const instance = new HTTPInstance(name, app.config('http')[name]);
+                        app.global.set(SECTION_HTTP, name, instance);
                         await instance.start();
                   }
 
@@ -254,7 +248,7 @@
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app.defer(async () => {
-                        for (const [name, instance] of instances) {
+                        for (const [name, instance] of app.global(SECTION_HTTP)) {
                               await instance.stop();
                         }
                   });

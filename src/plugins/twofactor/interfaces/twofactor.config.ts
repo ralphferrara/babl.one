@@ -8,6 +8,7 @@
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       export default interface TwoFactorConfig {
+            secret             : string;                 // Secret used to sign the JWT
             intervals          : {
                   sends               : number;          // Number of seconds to expire sends - 15 minutes
                   attempts            : number;          // Number of seconds to expire attempts - 5 minutes

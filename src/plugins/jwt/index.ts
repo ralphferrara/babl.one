@@ -13,7 +13,7 @@
       //|| Decorators
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import Plugin                             from '../../../decorators/plugin';
+      import Plugin                             from '../core/decorators/plugin';
       import { JWTStatuses }                    from './interfaces/types';
       export { JWTStatuses as JWTStatuses}      from './interfaces/types';
      
