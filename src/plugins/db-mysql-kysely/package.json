@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql-kysely",
-   "version": "0.0.30",
+   "version": "0.0.31",
    "description": "Kysely for MySQL/Kysely",
    "type": "module",
    "main": "dist/index.js",

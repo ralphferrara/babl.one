@@ -1,35 +1,35 @@
 {
-	"name": "@babl.one/core",
-	"version": "4.0.11",
-	"description": "Bootstrap kernel for the babl.one framework",
-	"type": "module",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": {
-			"import": "./dist/index.js"
-		}
-	},
-	"files": [
-		"dist",
-		"registerErrors.mjs",
-		"README.md"
-	],
-	"scripts": {
-		"dev": "cross-env NODE_ENV=development tsx src/index.ts",
-		"build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\core\\dist\"",
-		"release": "node release.mjs"
-	},
-	"devDependencies": {
-		"@types/node": "^22.13.14",
-		"@vitest/coverage-v8": "^3.0.9",
-		"chokidar": "^4.0.3",
-		"cross-env": "^7.0.3",
-		"tsconfig-paths": "^4.2.0",
-		"tsup": "^8.4.0",
-		"tsx": "^4.19.3",
-		"typescript": "^5.3.0",
-		"vitest": "^3.0.9"
-	},
-	"peerDependencies": {}
+   "name": "@babl.one/core",
+   "version": "4.0.12",
+   "description": "Bootstrap kernel for the babl.one framework",
+   "type": "module",
+   "main": "./dist/index.js",
+   "types": "./dist/index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js"
+      }
+   },
+   "files": [
+      "dist",
+      "registerErrors.mjs",
+      "README.md"
+   ],
+   "scripts": {
+      "dev": "cross-env NODE_ENV=development tsx src/index.ts",
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\core\\dist\"",
+      "release": "node release.mjs"
+   },
+   "devDependencies": {
+      "@types/node": "^22.13.14",
+      "@vitest/coverage-v8": "^3.0.9",
+      "chokidar": "^4.0.3",
+      "cross-env": "^7.0.3",
+      "tsconfig-paths": "^4.2.0",
+      "tsup": "^8.4.0",
+      "tsx": "^4.19.3",
+      "typescript": "^5.3.0",
+      "vitest": "^3.0.9"
+   },
+   "peerDependencies": {}
 }

@@ -1,36 +1,36 @@
 {
-      "name": "@babl.one/client-chirp",
-      "version": "0.0.32",
-      "description": "A reusable browser-side communications client for /plugins/server-http",
-      "main": "dist/index.cjs",
-      "module": "dist/index.mjs",
-      "types": "dist/index.d.ts",
-      "exports": {
-            ".": {
-                  "require": "./dist/index.cjs",
-                  "import": "./dist/index.mjs"
-            }
-      },
-      "scripts": {
-            "dev": "tsup index.ts --watch",
-            "build": "tsup index.ts --format esm,cjs --dts && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\client-chirp\\dist\"",
-            "release": "node release.mjs"
-      },
-      "keywords": [
-            "typescript",
-            "browser",
-            "component",
-            "javascript",
-            "umd"
-      ],
-      "author": "Ralph Ferrara",
-      "license": "MIT",
-      "devDependencies": {
-            "tsup": "^7.2.0",
-            "typescript": "^5.4.0"
-      },
-      "dependencies": {},
-      "peerDependencies": {
-            "@babl.one/server-router": "latest"
+   "name": "@babl.one/client-chirp",
+   "version": "0.0.33",
+   "description": "A reusable browser-side communications client for /plugins/server-http",
+   "main": "dist/index.cjs",
+   "module": "dist/index.mjs",
+   "types": "dist/index.d.ts",
+   "exports": {
+      ".": {
+         "require": "./dist/index.cjs",
+         "import": "./dist/index.mjs"
       }
+   },
+   "scripts": {
+      "dev": "tsup index.ts --watch",
+      "build": "tsup index.ts --format esm,cjs --dts && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\client-chirp\\dist\"",
+      "release": "node release.mjs"
+   },
+   "keywords": [
+      "typescript",
+      "browser",
+      "component",
+      "javascript",
+      "umd"
+   ],
+   "author": "Ralph Ferrara",
+   "license": "MIT",
+   "devDependencies": {
+      "tsup": "^7.2.0",
+      "typescript": "^5.4.0"
+   },
+   "dependencies": {},
+   "peerDependencies": {
+      "@babl.one/server-router": "latest"
+   }
 }
