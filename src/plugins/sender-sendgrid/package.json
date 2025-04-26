@@ -1,32 +1,33 @@
 {
-   "name": "@babl.one/sender-sendgrid",
-   "version": "0.0.13",
-   "description": "Wrapper for SendGrid send emails requires @babl.one/sender",
-   "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/sender-sendgrid",
+      "version": "0.0.13",
+      "description": "Wrapper for SendGrid send emails requires @babl.one/sender",
+      "type": "module",
+      "main": "dist/index.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist"
+      ],
+      "scripts": {
+            "dev": "tsx index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
+            "release": "node release.mjs"
+      },
+      "devDependencies": {
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0"
+      },
+      "dependencies": {
+            "@sendgrid/mail": "^8.1.5"
+      },
+      "peerDependencies": {
+            "@babl.one/sender": "latest",
+            "@babl.one/core": "latest"
       }
-   },
-   "files": [
-      "dist"
-   ],
-   "scripts": {
-      "dev": "tsx index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
-      "release": "node release.mjs"
-   },
-   "devDependencies": {
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0"
-   },
-   "dependencies": {
-      "@babl.one/sender": "latest",
-      "@sendgrid/mail": "^8.1.5",
-      "@babl.one/core": "latest"
-   },
-   "peerDependencies": {}
 }

@@ -10,12 +10,8 @@
       import * as fs                                        from 'fs/promises';
       import chokidar                                       from 'chokidar';
       import * as path                                      from 'path';
-
-      /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| FWO
-      //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-      import app                                            from '../index';
+      import Log                                            from './log';
+      import Path                                           from './path';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| FWO
@@ -67,7 +63,7 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async init(): Promise<void> {
-                  app.log(`FileWatcher Initializing : [${ this.dir }]`, 'info');
+                  Log.log(`FileWatcher Initializing : [${ this.dir }]`, 'info');
                   this.remainDirs   = [this.dir];
                   this.list         = [];
                   await this.scan();
@@ -86,14 +82,14 @@
                         console.error("FileWatcher::scan: thisPath is undefined.");
                         return;
                   }                    
-                  const fullPath = app.path(thisPath).abs();
+                  const fullPath = Path(thisPath).abs();
                   const files = await fs.readdir(fullPath);
                   await Promise.all(
                         files.map(async (item) => {
                               /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                               //|| Var
-                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                              const abs         = app.path(thisPath + '/' + item).abs();
+                              //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/                              
+                              const abs         = Path(thisPath + '/' + item).abs();
                               const relative    = thisPath + '/' + item;
                               const stats       = await fs.stat(abs);
                               const isFile      = stats.isFile();

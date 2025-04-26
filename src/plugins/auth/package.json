@@ -1,49 +1,49 @@
 {
-   "name": "@babl.one/auth",
-   "version": "0.0.68",
-   "description": "Handle the Authentication and Authorization of the Babl.one system",
-   "type": "module",
-   "main": "./dist/index.js",
-   "types": "./dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/auth",
+      "version": "0.0.70",
+      "description": "Handle the Authentication and Authorization of the Babl.one system",
+      "type": "module",
+      "main": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist",
+            "template",
+            "template.cjs",
+            "core.d.ts",
+            "registerErrors.mjs",
+            "init.cjs",
+            "README.md"
+      ],
+      "scripts": {
+            "dev": "cross-env NODE_ENV=development tsx src/index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\auth\\dist\"",
+            "release": "node release.mjs",
+            "postinstall": "node template.cjs && node init.cjs"
+      },
+      "peerDependencies": {
+            "@babl.one/jwt": "latest",
+            "@babl.one/server-router": "latest",
+            "@babl.one/twofactor": "latest",
+            "@babl.one/validate": "latest",
+            "@babl.one/core": "latest"
+      },
+      "dependencies": {
+            "bcryptjs": "^3.0.2"
+      },
+      "devDependencies": {
+            "@types/node": "^22.13.14",
+            "@vitest/coverage-v8": "^3.0.9",
+            "chokidar": "^4.0.3",
+            "cross-env": "^7.0.3",
+            "tsconfig-paths": "^4.2.0",
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0",
+            "vitest": "^3.0.9"
       }
-   },
-   "files": [
-      "dist",
-      "template",
-      "template.cjs",
-      "core.d.ts",
-      "registerErrors.mjs",
-      "init.cjs",
-      "README.md"
-   ],
-   "scripts": {
-      "dev": "cross-env NODE_ENV=development tsx src/index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts",
-      "release": "node release.mjs",
-      "postinstall": "node template.cjs && node init.cjs"
-   },
-   "peerDependencies": {
-      "@babl.one/core": "latest",
-      "@babl.one/jwt": "latest",
-      "@babl.one/server-router": "latest",
-      "@babl.one/twofactor": "latest",
-      "@babl.one/validate": "latest"
-   },
-   "dependencies": {
-      "bcryptjs": "^3.0.2"
-   },
-   "devDependencies": {
-      "@types/node": "^22.13.14",
-      "@vitest/coverage-v8": "^3.0.9",
-      "chokidar": "^4.0.3",
-      "cross-env": "^7.0.3",
-      "tsconfig-paths": "^4.2.0",
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0",
-      "vitest": "^3.0.9"
-   }
 }

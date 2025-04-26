@@ -149,7 +149,7 @@
                   //|| Main tie in 
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
                   
-                  app.cache = (name: string = 'default') => {
+                  app.extend('cache', (name: string = 'default') => {
                         return instances.get(name);
                   };
 
@@ -167,7 +167,7 @@
                   //|| Defer close
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.defer(async () => {
+                  app.defer.set('redis', async () => {
                         for (const [name, instance] of app._cache) {
                               app.log(`Closing Redis cache: ${name}`, 'info');
                               try {

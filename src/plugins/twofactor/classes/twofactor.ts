@@ -28,6 +28,8 @@
 
       import TwoFactorConfig           from '../interfaces/twofactor.config';
       import TwoFactorGenerate         from '../interfaces/twofactor.generate';
+      import TwoFactorPayload          from '../interfaces/twofactor.payload';
+      import TwoFactorValidated        from '../interfaces/twofactor.validated';
       import { TwoFactorActionTypes }  from '../interfaces/types';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -59,10 +61,12 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             validate(jwt: string, code: number, ip : string): TwoFactorValidated {
+                  if (!this.config.secret || this.config.secret.length < 16)  throw new Error('Missing "secret" or too short in in twofactor.json');
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Base Validate to get identifier
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-                  const payload = JWT.parse(jwt, '@PAYLOAD') as TwoFactorPayload;
+                  const parsed = JWT.parse(jwt, '@PAYLOAD');
+                  const payload = parsed.payload as TwoFactorPayload;
                   if (!payload) return { validated: false, reason: 'TF_INVALID' };
                   if (!payload.identifier) return { validated: false, reason: 'TF_INVALID' };
                   const identifier = payload.identifier;

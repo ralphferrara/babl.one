@@ -1,31 +1,31 @@
 {
-   "name": "@babl.one/logger-pretty",
-   "version": "0.0.58",
-   "description": "Our super-cool logger that makes everything look pretty",
-   "type": "module",
-   "main": "./dist/index.js",
-   "types": "./dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/logger-pretty",
+      "version": "0.0.58",
+      "description": "Our super-cool logger that makes everything look pretty",
+      "type": "module",
+      "main": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist",
+            "README.md"
+      ],
+      "scripts": {
+            "dev": "cross-env NODE_ENV=development tsx src/index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-app\\node_modules\\@babl.one\\logger-pretty\\dist\"",
+            "release": "node release.mjs"
+      },
+      "peerDependencies": {
+            "@babl.one/core": "latest"
+      },
+      "devDependencies": {
+            "cross-env": "^7.0.3",
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0"
       }
-   },
-   "files": [
-      "dist",
-      "README.md"
-   ],
-   "scripts": {
-      "dev": "cross-env NODE_ENV=development tsx src/index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-app\\node_modules\\@babl.one\\logger-pretty\\dist\"",
-      "release": "node release.mjs"
-   },
-   "peerDependencies": {
-      "@babl.one/core": "latest"
-   },
-   "devDependencies": {
-      "cross-env": "^7.0.3",
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0"
-   }
 }

@@ -58,7 +58,7 @@
                   if (area && app.global.appData[section] && app.global.appData[section][area]) {
                         app.global.appData[section][area] = {};
                   } else {
-                        app.log("app.global.delete() : Section or area not found", 'warn');
+                        app.log(`app.global.delete(${section}, ${area}) : Section or area not found`, 'warn');
                   }
             }
 
@@ -67,8 +67,15 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             public init(section? : string): void {
-                  if (app.global.appData === undefined) app.global.appData = {};
-                  if (section && app.global.appData[section]) app.global.appData[section] = {};
+                  if (app.global.appData === undefined) {
+                        app.global.appData = {};
+                        app.log(`Initialized Global Data`, 'success');
+                  }
+                  if (section && !app.global.appData[section]) {
+                        app.global.appData[section] = {};
+                        app.log(`Initialized Global Data(${section})`, 'success');
+                  }
+                  
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||

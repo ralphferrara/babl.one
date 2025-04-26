@@ -1,35 +1,36 @@
 {
-   "name": "@babl.one/nextjs-auth",
-   "version": "0.0.16",
-   "description": "Simple auth component to get data from JWT",
-   "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/nextjs-auth",
+      "version": "0.0.16",
+      "description": "Simple auth component to get data from JWT",
+      "type": "module",
+      "main": "dist/index.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist",
+            "template.cjs",
+            "template",
+            "README.md"
+      ],
+      "scripts": {
+            "dev": "tsx index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\nextjs-auth\\dist\"",
+            "release": "node release.mjs",
+            "postinstall": "node template.cjs"
+      },
+      "devDependencies": {
+            "@types/node": "^22.14.0",
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0"
+      },
+      "dependencies": {},
+      "peerDependencies": {
+            "@babl.one/client-chirp": "latest",
+            "@babl.one/jwt": "latest"
       }
-   },
-   "files": [
-      "dist",
-      "template.cjs",
-      "template",
-      "README.md"
-   ],
-   "scripts": {
-      "dev": "tsx index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\nextjs-auth\\dist\"",
-      "release": "node release.mjs",
-      "postinstall": "node template.cjs"
-   },
-   "devDependencies": {
-      "@types/node": "^22.14.0",
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0"
-   },
-   "dependencies": {
-      "@babl.one/client-chirp": "^0.0.29",
-      "@babl.one/jwt": "^0.0.22"
-   }
 }

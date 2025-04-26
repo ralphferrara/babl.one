@@ -1,27 +1,28 @@
 {
-   "name": "@babl.one/jwt",
-   "version": "0.1.1",
-   "description": "JWT plugin",
-   "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
-      }
-   },
-   "files": [
-      "dist",
-      "README.md"
-   ],
-   "scripts": {
-      "dev": "tsx index.ts",
-      "build": "npx tsup ./index.ts --target es2022 --format esm --dts --out-dir dist",
-      "release": "node release.mjs"
-   },
-   "devDependencies": {
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.8.3"
-   }
+      "name": "@babl.one/jwt",
+      "version": "0.1.1",
+      "description": "JWT plugin",
+      "type": "module",
+      "main": "dist/index.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist",
+            "README.md"
+      ],
+      "scripts": {
+            "dev": "tsx index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\jwt\\dist\"",
+            "release": "node release.mjs"
+      },
+      "devDependencies": {
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.8.3"
+      },
+      "peerDependencies": {}
 }

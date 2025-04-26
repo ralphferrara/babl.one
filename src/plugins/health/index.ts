@@ -59,11 +59,11 @@
                   let child       : ChildProcessWithoutNullStreams | null = null;
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Register tie in 
+                  //|| Register tie in  - DONT EXTEND
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
                   app._health = new HealthPluginClass();
-                  app.health = (field: string, value : any, threatLevel : HealthLevel) => {
+                  app.extend('health', (field: string, value : any, threatLevel : HealthLevel) => {
                         switch(threatLevel) {
                               case "INFO":      case 0: threatLevel = 0; break;
                               case "WATCH":     case 1: threatLevel = 1; break;

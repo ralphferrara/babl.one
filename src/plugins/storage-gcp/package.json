@@ -1,32 +1,33 @@
 {
-   "name": "@babl.one/storage-gcp",
-   "version": "0.0.16",
-   "description": "Wrapper for Google Cloud Storage blob storage",
-   "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/storage-gcp",
+      "version": "0.0.16",
+      "description": "Wrapper for Google Cloud Storage blob storage",
+      "type": "module",
+      "main": "dist/index.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist"
+      ],
+      "scripts": {
+            "dev": "tsx index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
+            "release": "node release.mjs"
+      },
+      "devDependencies": {
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0"
+      },
+      "dependencies": {
+            "@google-cloud/storage": "^7.16.0"
+      },
+      "peerDependencies": {
+            "@babl.one/storage": "latest",
+            "@babl.one/core": "latest"
       }
-   },
-   "files": [
-      "dist"
-   ],
-   "scripts": {
-      "dev": "tsx index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist",
-      "release": "node release.mjs"
-   },
-   "devDependencies": {
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0"
-   },
-   "dependencies": {
-      "@babl.one/storage": "latest",
-      "@google-cloud/storage": "^7.16.0",
-      "@babl.one/core": "latest"
-   },
-   "peerDependencies": {}
 }

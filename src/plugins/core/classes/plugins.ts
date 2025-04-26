@@ -73,7 +73,6 @@
                                     if (pluginName) {
                                           app.plugins.set(pluginName, pluginClass);
                                           pluginCount++;
-                                          app.log(`\rPlugins located:  ${pluginCount}`, 'success');
                                     }
                               } catch (err) {
                                     console.log(`\n------------------------------------------------------------------`);
@@ -82,10 +81,10 @@
                                     console.log(`------------------------------------------------------------------\n`);
                               }
                         }
-                        if (pluginCount > 0) process.stdout.write('\n');
+                        app.log(`Plugins located in ${dir}:  ${pluginCount}`, 'success');                                          
                   };
                   await fw.init();
-            }
+}
 
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -94,7 +93,6 @@
 
             public async use(name: string, ...args: any[]) {
                   app.log(`app.plugins.use() : Loading plugin: ${name}`, 'info');
-                  console.log(app.global(SECTION_PLUGINS));
                   const plugin = app.global(SECTION_PLUGINS, name);
                   if (plugin) {
                         try {

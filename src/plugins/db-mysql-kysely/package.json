@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mysql-kysely",
-   "version": "0.0.26",
+   "version": "0.0.30",
    "description": "Kysely for MySQL/Kysely",
    "type": "module",
    "main": "dist/index.js",
@@ -30,6 +30,7 @@
       "mysql2": "^3.14.0"
    },
    "peerDependencies": {
-      "@babl.one/db-mysql": "latest"
+      "@babl.one/db-mysql": "latest",
+      "@babl.one/core": "latest"
    }
 }

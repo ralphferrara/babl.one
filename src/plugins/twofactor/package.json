@@ -1,35 +1,35 @@
 {
-   "name": "@babl.one/twofactor",
-   "version": "0.0.23",
-   "description": "Wrapper for TwoFactor Authentication",
-   "type": "module",
-   "main": "dist/index.js",
-   "types": "dist/index.d.ts",
-   "exports": {
-      ".": {
-         "import": "./dist/index.js"
+      "name": "@babl.one/twofactor",
+      "version": "0.0.25",
+      "description": "Wrapper for TwoFactor Authentication",
+      "type": "module",
+      "main": "dist/index.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+            ".": {
+                  "import": "./dist/index.js"
+            }
+      },
+      "files": [
+            "dist",
+            "template.cjs",
+            "template",
+            "registerErrors.mjs",
+            "README.md"
+      ],
+      "scripts": {
+            "dev": "tsx index.ts",
+            "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\twofactor\\dist\"",
+            "release": "node release.mjs",
+            "postinstall": "node template.cjs"
+      },
+      "devDependencies": {
+            "tsup": "^8.4.0",
+            "tsx": "^4.19.3",
+            "typescript": "^5.3.0"
+      },
+      "peerDependencies": {
+            "@babl.one/core": "latest",
+            "@babl.one/jwt": "latest"
       }
-   },
-   "files": [
-      "dist",
-      "template.cjs",
-      "template",
-      "registerErrors.mjs",
-      "README.md"
-   ],
-   "scripts": {
-      "dev": "tsx index.ts",
-      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl-auth\\node_modules\\@babl.one\\twofactor\\dist\"",
-      "release": "node release.mjs",
-      "postinstall": "node template.cjs"
-   },
-   "devDependencies": {
-      "tsup": "^8.4.0",
-      "tsx": "^4.19.3",
-      "typescript": "^5.3.0"
-   },
-   "peerDependencies": {
-      "@babl.one/core": "latest",
-      "@babl.one/jwt": "^0.1.0"
-   }
 }

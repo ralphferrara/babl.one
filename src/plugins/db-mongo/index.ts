@@ -32,7 +32,6 @@
             //|| Var
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            public app          : any;
             public name         : string;
             public client       : MongoClient;
             public db           : Db | undefined;
@@ -43,9 +42,8 @@
             //|| Constructor
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            constructor(name: string, app: any, config: any) {
+            constructor(name: string, config: any) {
                   this.name     = name;
-                  this.app      = app;
                   this.config   = config;
                   this.status   = 'INIT';
                   this.client   = {} as any;
@@ -56,17 +54,17 @@
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
             async connect() {
-                  this.app.log(`Connecting to MongoDB [${this.name}] @ ${this.config.host}`, 'info');
+                  app.log(`Connecting to MongoDB [${this.name}] @ ${this.config.host}`, 'info');
                   try {
                         const uri     = `mongodb://${this.config.host}:${this.config.port}`;
                         this.client   = new MongoClient(uri);
                         await this.client.connect();
                         this.db       = this.client.db(this.config.database);
                         this.status   = 'OK';
-                        this.app.log(`MongoDB [${this.name}] Connected`, 'success');
+                        app.log(`MongoDB [${this.name}] Connected`, 'success');
                   } catch (err) {
                         this.status = 'FAIL';
-                        this.app.log(`MongoDB [${this.name}] Connection Failed`, 'error');
+                        app.log(`MongoDB [${this.name}] Connection Failed`, 'error');
                         console.error(err);
                   }
             }
@@ -78,9 +76,9 @@
             async close() {
                   try {
                         await this.client.close();
-                        this.app.log(`Closed MongoDB connection: ${this.name}`, 'info');
+                        app.log(`Closed MongoDB connection: ${this.name}`, 'info');
                   } catch (err) {
-                        this.app.log(`Failed to close MongoDB: ${this.name}`, 'error');
+                        app.log(`Failed to close MongoDB: ${this.name}`, 'error');
                   }
             }
       }
@@ -95,51 +93,38 @@
             static async init(configPath : string) {
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Config
+                  //|| Use if not already used
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.log("Loading configuration : " + app.path(configPath).abs(), 'info');
+                  if (typeof((app as any).db) === 'undefined') app.use('db');
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Vars
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  const instances : Map<string, MongoDBInstance> = new Map();
-                  const config    : any                        = await app.path(configPath).projectConfig();
+                  const config = await app.config.json('mongo', configPath);
                   
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Tie In
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  app.mongo = async (name: string, database? : string) : Promise<MongoClient | Db | undefined> => {
-                        const instance = instances.get(name);
-                        if (!instance) return undefined;
-                        return (database) ? instance.client.db(database) : instance.client;
-                  };
+                  app.extend('mongo', async (name: string, database? : string) : Promise<MongoClient | Db | undefined> => {
+                        return (app as any).db(name, 'mongo');
+                  });
 
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-                  for (const name in config) {
-                        if (instances.has(name)) {
-                              app.log(`MongoDB instance conflict: ${name} already exists`, 'error');
-                              continue;
-                        }
-                        const instance = new MongoDBInstance(name, app, config[name]);
-                        instances.set(name, instance);
-                        await instance.connect();
+
+                  for (const name in config) {                        
+                        (app as any).db.set(name, 'mongo', new MongoDBInstance(name, config[name]));
+                        await (app as any).db(name, 'mongo').connect();
                   }
-
+                                    
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-                  //|| Defer
+                  //|| EOC
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
-
-                  app.defer(async () => {
-                        for (const [name, instance] of instances) {
-                              await instance.close();
-                        }
-                  });
 
             }
       }
