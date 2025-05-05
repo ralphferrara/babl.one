@@ -1,0 +1,12 @@
+{
+      
+      "main": {
+            "host"      : "localhost",
+            "port"      : 3306,
+            "database"  : "sonata_next",
+            "username"  : "root",
+            "password"  : "bablone!",
+            "schema"    : "schema/babl.one.ts"
+      }
+
+}

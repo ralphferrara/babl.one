@@ -62,14 +62,26 @@
                   fw.extMatch   = extension;
                   fw.watch      = false;
                   fw.callback   = async (files) => {
+                        app.log(`app.plugins.search() : Filewatcher ${files.length} plugins`, 'info');
                         let pluginCount = 0;
                         for (const file of files) {
                               try {
                                     const pluginPath  = pathToFileURL(file.absolute).href;
-                                    app.log("Plugin found : " + file.relative, 'info');
-                                    const plugin      = await import(pluginPath);
-                                    const pluginClass = plugin?.default;
-                                    const pluginName  = pluginClass?.__pluginName;
+                                    /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                                    //|| Ignore Core & Client 
+                                    //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                                    if (pluginPath.indexOf('@babl.one/core/') > -1) continue;
+                                    if (pluginPath.indexOf('@babl.one/client') > -1) continue;
+                                    /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                                    //|| Ignore Core
+                                    //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                                    app.log("Plugin found : " + pluginPath, 'info');
+                                    const pluginClass = await this.loadPlugin(file.absolute, '');
+                                    if (!pluginClass) {
+                                          app.log(`Plugin load failed: No default export in ${pluginPath}`, 'warn');
+                                    }                                    
+                                    const pluginName = pluginClass ? Reflect.get(pluginClass, '__pluginName') : undefined;
+                                    app.log("Plugin imported : " + pluginPath, 'info');
                                     if (pluginName) {
                                           app.plugins.set(pluginName, pluginClass);
                                           pluginCount++;
@@ -84,8 +96,44 @@
                         app.log(`Plugins located in ${dir}:  ${pluginCount}`, 'success');                                          
                   };
                   await fw.init();
-}
+            }
 
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Load Plugin
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            public async loadPlugin(filePath: string) {
+                  try {
+                        // First attempt dynamic import
+                        const pluginPath = pathToFileURL(filePath).href;
+                        const pluginImport = await import(pluginPath);
+                        return pluginImport?.default;
+                  } catch (dynamicErr) {
+                        try {
+                              // Try guessing the module name only if dynamic import failed AND if it's NOT an ESM file
+                              const relativePath = path.relative(path.resolve(process.cwd(), 'node_modules'), filePath);
+                              const parts = relativePath.split(path.sep);
+                              let moduleName = parts[0];
+                              if (moduleName.startsWith('@')) {
+                                    moduleName = parts.slice(0, 2).join('/');
+                              }
+            
+                              const modulePackagePath = path.resolve(process.cwd(), 'node_modules', moduleName, 'package.json');
+                              const modulePackage = await app.path(modulePackagePath).json();
+            
+                              if (modulePackage?.type === 'module') {
+                                    app.log(`Skipping require() fallback for ESM-only module: ${moduleName}`, 'warn');
+                                    return null;
+                              }
+            
+                              const pluginRequire = require(moduleName);
+                              return pluginRequire?.default;
+                        } catch (requireErr) {
+                              console.error(`Plugin load failed for file: ${filePath}`, requireErr);
+                              return null;
+                        }
+                  }
+            }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Use Plugin

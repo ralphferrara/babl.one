@@ -7,3 +7,5 @@ src/plugins/chat
 src/routes/chat
 src/consumers/
 create-babl-one/
+config/
+

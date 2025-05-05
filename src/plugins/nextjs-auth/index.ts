@@ -1,24 +1,23 @@
 /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-//|| babl.one Plugin :: /nextjs-auth
-//|| Provides Auth JWT for NextJS
+//|| NextJS Core
+//|| Provides a stateless core system for next.js
 //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-      //|| Dependencies
+      //|| Import App
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import app                          from '@babl.one/core';           
+      import app                          from '@babl.one/nextjs-core';
       import Chirp                        from '@babl.one/client-chirp';
-      import path                         from 'path';
-      import JWT                          from '../jwt/index';           
-      import Plugin                       from '../../../decorators/plugin';
-      import { AuthJWT }                  from '../auth/interfaces/auth.jwt';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Export
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      export { AuthJWT as AuthJWT }       from '../auth/interfaces/auth.jwt';
+      import  JWT                         from '@babl.one/jwt';
+      import { ReadonlyHeaders }          from './interfaces/next.headers';
+      import { AuthJWT }                  from './interfaces/auth.jwt';
+      export type { AuthJWT }             from './interfaces/auth.jwt';
 
       /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
       //|| Config
@@ -40,6 +39,8 @@
       let nextJSAuth_session             : string = "";
       let nextJSAuth_config              : NextJSAuthConfig;
       let nextJSAuth_expires             : Date = new Date();
+      let nextJSAuth_redirect            : (url : string) => void = () => { return; };
+      let nextJSAuth_currentURL          : string = "";
       let nextJSAuth_data                : AuthJWT = {
             site        : "",
             id          : -1,
@@ -62,11 +63,15 @@
             public static COOKIE_NAME_SESSION = "session";
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Set Config
+            //|| Cookies
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            static setConfig(config : NextJSAuthConfig) : void {
-                  nextJSAuth_config = config;
+            static setCookies( get : ( name: string ) => { name : string, value : string} )  : void {
+                  app.log("NextJSAuth::: SetCookies", "info");
+                  const authJWT = get(NextJSAuth.COOKIE_NAME_AUTHJWT) || {name:"", value : ""};
+                  const session = get(NextJSAuth.COOKIE_NAME_SESSION) || {name:"", value : ""};
+                  nextJSAuth_authJWT = authJWT.value ?? "";
+                  nextJSAuth_session = session.value ?? "";
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -77,6 +82,15 @@
                   app.log("NextJSAuth::: SetAuth", "info");
                   nextJSAuth_authJWT = setAuthJWT;
                   nextJSAuth_session = setSession;
+            }
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Set Navigation
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            static setRedirect( redirect : (url : string) => void) : void {
+                  app.log("NextJSAuth::: SetRedirect", "info");
+                  nextJSAuth_redirect   = redirect;
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -95,11 +109,15 @@
             }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
-            //|| Get Auth Cookies
+            //|| Authorize
             //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-            static async authorize( level : number ) : Promise<void> {
+            static async authorize( ) : Promise<void> {
                   app.log('auth/authorize():headers', 'info');
+                  /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+                  //|| Set Config
+                  //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+                  nextJSAuth_config = app.config('auth');                  
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
                   //|| Load and Check
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
@@ -136,7 +154,7 @@
                               app.log('auth/authorize():JWT Renewed. Restarting Authorization', 'info');
                               NextJSAuth.setAuth(chirp.data('authJWT') || "", chirp.data('session') || "");
                               NextJSAuth.save(chirp.data('authJWT') || "", chirp.data('session') || "");
-                              return await NextJSAuth.authorize(level);
+                              return await NextJSAuth.authorize();
                         } else return NextJSAuth.fail("AUTH_NORENEW");
                   }
                   /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
@@ -157,6 +175,15 @@
                         message     : "AUTH_SUCCESS"
                   };
             } 
+
+            /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
+            //|| Authorize
+            //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
+
+            static check( level : number ) : void{
+                  if (level === 0) return;
+                  if (NextJSAuth.level() < level) nextJSAuth_redirect(nextJSAuth_currentURL);
+            }
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| Fail
@@ -184,6 +211,7 @@
             static session     = () : string | undefined    => nextJSAuth_session || undefined;
             static message     = () : string                => nextJSAuth_data.message  || "AUTH_NOAUTH";            
             static expires     = () : Date                  => nextJSAuth_expires;
+            static currentURL  = () : string                => nextJSAuth_currentURL || "";
 
             /*||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||
             //|| EOC

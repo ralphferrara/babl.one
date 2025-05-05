@@ -7,7 +7,7 @@
       //|| Interfaces
       //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-      import ResponseDataPayload          from "../server-router/interfaces/response.data.payload";
+      import ResponseDataPayload          from "./interfaces/response.data.payload";
       import { MockOptions }              from "./interfaces/mock.options";
       import { ChirpStatuses }            from "./interfaces/types";
 

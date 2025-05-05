@@ -174,6 +174,8 @@
                   //|| Check the Signature
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
+                  console.log(cleanSignature);
+                  console.log(expectedSignature);
                   if (cleanSignature !== expectedSignature) {
                         myJWT.payload                 = {};
                         myJWT.status                  = "FAILED";

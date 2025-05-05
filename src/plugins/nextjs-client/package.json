@@ -1,0 +1,41 @@
+{
+   "name": "@babl.one/nextjs-client",
+   "version": "0.0.3",
+   "description": "Client side includes for next.js",
+   "type": "module",
+   "main": "./index.js",
+   "types": "./index.d.ts",
+   "exports": {
+      ".": {
+         "import": "./dist/index.js",
+         "require": "./dist/index.js"
+      }
+   },
+   "files": [
+      "dist",
+      "registerErrors.mjs",
+      "README.md"
+   ],
+   "scripts": {
+      "dev": "cross-env NODE_ENV=development tsx src/index.ts",
+      "build": "tsup index.ts --target es2022 --format esm --dts --out-dir dist && xcopy /E /Y /I dist \"C:\\SCM\\master\\babl.next.js\\node_modules\\@babl.one\\nextjs-client\\dist\"",
+      "release": "node release.mjs"
+   },
+   "devDependencies": {
+      "@swc/core": "^1.11.22",
+      "@swc/helpers": "^0.5.17",
+      "@types/node": "^22.13.14",
+      "@vitest/coverage-v8": "^3.0.9",
+      "chokidar": "^4.0.3",
+      "cross-env": "^7.0.3",
+      "tsconfig-paths": "^4.2.0",
+      "tsup": "^8.4.0",
+      "tsx": "^4.19.3",
+      "typescript": "^5.3.0",
+      "vitest": "^3.0.9"
+   },
+   "dependencies": {
+      "@babl.one/client-chirp": "^0.0.37",
+      "@babl.one/jwt": "^0.1.3"
+   }
+}

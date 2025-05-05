@@ -1,4 +1,6 @@
 {
+      "translator"            : "google",
       "defaultLocale"         : "en",
-      "supportedLocales"      : ["en", "es", "fr"]
+      "supportedLocales"      : ["en", "es", "fr"],
+      "storage"               : "local"
 }

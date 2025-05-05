@@ -116,7 +116,6 @@
                   //|| Instances
                   //||=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-||*/
 
-
                   for (const name in config) {                        
                         (app as any).db.set(name, 'mongo', new MongoDBInstance(name, config[name]));
                         await (app as any).db(name, 'mongo').connect();
