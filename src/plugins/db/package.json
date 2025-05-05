@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db",
-   "version": "0.0.5",
+   "version": "0.0.6",
    "description": "Main Wrappper for databases",
    "type": "module",
    "main": "dist/index.js",

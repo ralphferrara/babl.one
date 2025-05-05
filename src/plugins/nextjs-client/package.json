@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/nextjs-client",
-   "version": "0.0.3",
+   "version": "0.0.4",
    "description": "Client side includes for next.js",
    "type": "module",
    "main": "./index.js",

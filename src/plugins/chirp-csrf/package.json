@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/chirp-csrf",
-   "version": "0.0.15",
+   "version": "0.0.16",
    "description": "CSRF Protection for Babl One Chirp",
    "type": "module",
    "main": "dist/index.js",

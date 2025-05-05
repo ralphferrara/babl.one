@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/db-mongo",
-   "version": "0.0.51",
+   "version": "0.0.52",
    "description": "Database Wrapper for MongoDB",
    "type": "module",
    "main": "dist/index.js",
