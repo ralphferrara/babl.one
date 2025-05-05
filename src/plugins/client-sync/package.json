@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/client-sync",
-   "version": "0.0.7",
+   "version": "0.0.8",
    "description": "Server Client for babl-sync",
    "type": "module",
    "main": "dist/index.js",

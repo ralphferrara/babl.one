@@ -1,6 +1,6 @@
 {
    "name": "@babl.one/client-chirp",
-   "version": "0.0.38",
+   "version": "0.0.39",
    "description": "A reusable browser-side communications client for /plugins/server-http",
    "main": "./index.cjs",
    "module": "./index.mjs",
